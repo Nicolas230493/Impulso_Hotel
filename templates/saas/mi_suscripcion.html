@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Mi suscripción{% endblock %}
+{% block contenido %}
+<h1 class="h4">Mi suscripción</h1>
+{% if not sus %}<p class="text-muted">Esta instalación no tiene suscripción asociada.</p>{% else %}
+<div class="row g-3"><div class="col-lg-6"><div class="card card-body">
+<h2 class="h5">{{ sus.plan }} {% badge sus.estado sus.get_estado_display %}</h2>
+<p class="small mb-1">{{ sus.plan.precio_mensual|pesos }} / mes · {% if sus.plan.max_habitaciones %}hasta {{ sus.plan.max_habitaciones }} habitaciones{% else %}habitaciones ilimitadas{% endif %} · {{ sus.plan.max_hoteles }} hotel/es</p>
+<p class="small mb-1">Inicio {{ sus.inicio|date:"d/m/Y" }}{% if sus.fin_prueba %} · prueba hasta {{ sus.fin_prueba|date:"d/m/Y" }}{% endif %} · próximo cobro {{ sus.proximo_cobro|date:"d/m/Y" }}</p>
+<p class="small">Uso: {{ uso.hoteles }} hotel/es · {{ uso.habitaciones }} habitaciones · {{ uso.usuarios }} usuarios · {{ uso.reservas_30d }} reservas en 30 días</p>
+{% if sus.estado in "morosa,suspendida" %}<form method="post">{% csrf_token %}<button name="accion" value="pagar" class="btn btn-success">Reintentar el cobro ahora</button></form>{% endif %}
+<form method="post" class="mt-2 d-flex gap-1">{% csrf_token %}<input name="token" class="form-control form-control-sm" placeholder="Token del medio de pago (pasarela)"><button name="accion" value="medio" class="btn btn-sm btn-outline-primary text-nowrap">Actualizar medio</button></form>
+<p class="small text-muted mt-2">La falta de pago pasa la cuenta a solo lectura tras {{ 7 }} días de gracia. Los datos nunca se borran.</p></div></div>
+<div class="col-lg-6"><div class="card"><div class="card-header small fw-semibold">Cobros</div><ul class="list-group list-group-flush small">{% for c in cobros %}<li class="list-group-item d-flex justify-content-between"><span>{{ c.fecha|date:"d/m/Y" }} · {{ c.periodo }} · {{ c.detalle }}</span><span>{{ c.importe|pesos }} {% if c.aprobado %}<i class="bi bi-check-circle text-success"></i>{% else %}<i class="bi bi-x-circle text-danger"></i>{% endif %}</span></li>{% empty %}<li class="list-group-item text-muted">Sin cobros todavía.</li>{% endfor %}</ul></div>
+<div class="card card-body small mt-2"><b>Módulos incluidos</b><div>{{ sus.plan.modulos|join:", " }}</div></div></div></div>
+{% endif %}
+{% endblock %}

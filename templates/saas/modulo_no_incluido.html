@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block contenido %}<div class="alert alert-info"><h1 class="h5">Módulo no incluido en su plan</h1>El módulo <b>{{ modulo }}</b> no forma parte del plan <b>{{ plan }}</b>. <a href="{% url 'saas_mi_suscripcion' %}">Ver planes</a>.</div>{% endblock %}

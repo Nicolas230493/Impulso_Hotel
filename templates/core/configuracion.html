@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1 class="h4">Configuración</h1>
+<div class="list-group" style="max-width:640px">
+  <a class="list-group-item list-group-item-action" href="{% url 'configuracion_hotel' %}"><i class="bi bi-building"></i> Datos del establecimiento, horarios y políticas</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'tipohabitacion_lista' %}"><i class="bi bi-door-open"></i> Tipos de habitación</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'habitacion_lista' %}"><i class="bi bi-door-closed"></i> Habitaciones</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'tarifa_lista' %}"><i class="bi bi-currency-dollar"></i> Tarifas y temporadas</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'bloqueo_lista' %}"><i class="bi bi-slash-circle"></i> Períodos fuera de servicio</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'usuario_lista' %}"><i class="bi bi-person-gear"></i> Usuarios y roles</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'cuentacorriente_lista' %}"><i class="bi bi-briefcase"></i> Cuentas corrientes de empresas</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'puntoventa_lista' %}"><i class="bi bi-upc"></i> Puntos de venta (ARCA)</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'categoriagasto_lista' %}"><i class="bi bi-tags"></i> Categorías de gasto</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'checklist_lista' %}"><i class="bi bi-list-check"></i> Checklist de limpieza</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'plantilla_lista' %}"><i class="bi bi-whatsapp"></i> Plantillas de WhatsApp / email</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'reporte_lista' %}"><i class="bi bi-envelope-paper"></i> Reportes programados</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'importar' %}"><i class="bi bi-file-earmark-arrow-up"></i> Importar huéspedes y reservas (Excel)</a>
+  <a class="list-group-item list-group-item-action" href="{% url 'auditoria_lista' %}"><i class="bi bi-shield-check"></i> Auditoría</a>
+</div>
+{% endblock %}

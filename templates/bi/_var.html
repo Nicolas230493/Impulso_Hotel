@@ -1,0 +1,1 @@
+{% if v is not None %}<span class="small {% if invertido %}{% if v > 0 %}text-danger{% else %}text-success{% endif %}{% else %}{% if v >= 0 %}text-success{% else %}text-danger{% endif %}{% endif %}"><i class="bi bi-arrow-{% if v >= 0 %}up{% else %}down{% endif %}-short"></i>{{ v }} % vs. año ant.</span>{% else %}<span class="small text-muted">sin dato año ant.</span>{% endif %}

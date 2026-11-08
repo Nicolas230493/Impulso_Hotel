@@ -1,0 +1,10 @@
+<div class="row g-1">
+  <div class="col-12"><textarea name="descripcion" class="form-control form-control-sm" rows="2" placeholder="Trabajo realizado" required></textarea></div>
+  <div class="col-4"><input name="horas" type="number" step="0.25" class="form-control form-control-sm" placeholder="Horas"></div>
+  <div class="col-4"><input name="costo_mano_obra" type="number" step="0.01" class="form-control form-control-sm" placeholder="Mano de obra $"></div>
+  <div class="col-4"><input name="costo_externo" type="number" step="0.01" class="form-control form-control-sm" placeholder="Terceros $"></div>
+  <div class="col-12 small text-muted mt-1">Repuestos usados (descuentan stock):</div>
+  {% for i in filas %}<div class="col-6"><select name="rep_{{ i }}" class="form-select form-select-sm"><option value="">—</option>{% for p in productos %}<option value="{{ p.pk }}">{{ p }}</option>{% endfor %}</select></div>
+  <div class="col-3"><select name="rep_dep_{{ i }}" class="form-select form-select-sm">{% for d in depositos %}<option value="{{ d.pk }}">{{ d }}</option>{% endfor %}</select></div>
+  <div class="col-3"><input name="rep_cant_{{ i }}" type="number" step="0.01" class="form-control form-control-sm" placeholder="Cant."></div>{% endfor %}
+</div>

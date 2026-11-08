@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}Ayuda{% endblock %}
+{% block contenido %}
+<h1 class="h4">Ayuda</h1>
+<form class="mb-2"><input name="q" value="{{ q }}" class="form-control" style="max-width:420px" placeholder="Buscar en la base de conocimiento"></form>
+<div class="row g-3"><div class="col-lg-8"><div class="accordion" id="kb">{% for a in articulos %}<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#a{{ a.pk }}"><span class="badge text-bg-light me-2">{{ a.categoria }}</span> {{ a.titulo }}</button></h2>
+<div id="a{{ a.pk }}" class="accordion-collapse collapse" data-bs-parent="#kb"><div class="accordion-body small">{{ a.contenido|linebreaks }}</div></div></div>{% empty %}<p class="text-muted">Sin artículos.</p>{% endfor %}</div>
+<p class="small mt-2">¿No encontró la respuesta? <a href="{% url 'soporte_lista' %}">Escríbanos</a>.</p></div>
+<div class="col-lg-4"><div class="card card-body small"><h2 class="h6">Novedades</h2>{% for v in versiones %}<div class="mb-2"><b>{{ v.version }}</b> · {{ v.fecha|date:"d/m/Y" }}<div>{{ v.titulo }}</div><div class="text-muted">{{ v.descripcion|truncatechars:160 }}</div></div>{% endfor %}</div></div></div>
+{% endblock %}

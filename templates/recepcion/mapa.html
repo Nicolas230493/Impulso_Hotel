@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block titulo %}Mapa de habitaciones{% endblock %}
+{% block contenido %}
+<h1 class="h4">Mapa de habitaciones</h1>
+<div class="d-flex flex-wrap gap-1 mb-2 small">{% for valor, nombre in estados %}<span class="badge hab-{{ valor }}">{{ nombre }}</span>{% endfor %}</div>
+<div id="mapa" hx-get="{% url 'mapa_habitaciones' %}" hx-trigger="every 15s" hx-swap="innerHTML">{% include "recepcion/_mapa.html" %}</div>
+{% endblock %}

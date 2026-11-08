@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block titulo %}Huéspedes{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-2"><h1 class="h4 mb-0">Huéspedes</h1>
+{% if perms.huespedes.add_huesped %}<a class="btn btn-primary btn-sm" href="{% url 'huesped_nuevo' %}"><i class="bi bi-plus-lg"></i> Nuevo</a>{% endif %}</div>
+<form class="mb-2"><div class="input-group input-group-sm" style="max-width:460px"><input class="form-control" name="q" value="{{ q }}" placeholder="Nombre, apellido, documento, email o teléfono"><button class="btn btn-outline-secondary"><i class="bi bi-search"></i></button></div></form>
+<div class="tabla-resp"><table class="table table-sm table-hover bg-white">
+<thead><tr><th>Apellido y nombre</th><th>Documento</th><th>Nacionalidad</th><th>Teléfono</th><th>Email</th></tr></thead><tbody>
+{% for h in page_obj %}<tr><td><a href="{% url 'huesped_detalle' h.pk %}">{{ h }}</a></td><td>{{ h.get_tipo_doc_display }} {{ h.nro_doc }}</td><td>{{ h.nacionalidad }}</td><td>{{ h.telefono }}</td><td>{{ h.email }}</td></tr>
+{% empty %}<tr><td colspan="5" class="text-muted text-center py-3">Sin resultados.</td></tr>{% endfor %}</tbody></table></div>
+{% include "_paginacion.html" %}
+{% endblock %}

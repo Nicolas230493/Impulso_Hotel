@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Mis tareas{% endblock %}
+{% block contenido %}
+<h1 class="h5">Mis tareas · {{ hoy|date:"d/m" }}</h1>
+<div class="d-grid gap-2">
+{% for t in tareas %}
+<a href="{% url 'limpieza_tarea' t.pk %}" class="btn btn-xl text-start btn-outline-{{ t.estado|color }} d-flex justify-content-between align-items-center">
+  <span><b class="fs-4">{{ t.habitacion }}</b> <small>{{ t.get_tipo_display }}</small>{% if t.prioridad == 1 %} <span class="badge text-bg-danger">Llegada hoy</span>{% endif %}{% if not t.asignada_a %} <span class="badge text-bg-light">sin asignar</span>{% endif %}</span>
+  <span class="badge text-bg-{{ t.estado|color }}">{{ t.get_estado_display }}</span></a>
+{% empty %}<div class="alert alert-success">¡No hay tareas pendientes!</div>{% endfor %}
+</div>
+{% endblock %}

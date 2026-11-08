@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}Importar desde Excel{% endblock %}
+{% block contenido %}
+<h1 class="h4">Importar huéspedes y reservas desde Excel</h1>
+<div class="row g-3"><div class="col-lg-6"><form method="post" enctype="multipart/form-data" class="card card-body">{% csrf_token %}
+<label class="form-label">Qué importa</label><select name="tipo" class="form-select mb-2"><option value="huespedes">Huéspedes</option><option value="reservas">Reservas</option></select>
+<input type="file" name="archivo" accept=".xlsx" class="form-control mb-2" required><button class="btn btn-primary">Importar</button></form>
+{% if resultado %}<div class="alert alert-info mt-2">Creados: {{ resultado.creados }} · Actualizados: {{ resultado.actualizados }} · Errores: {{ resultado.errores|length }}{% if resultado.errores %}<ul class="small mb-0">{% for e in resultado.errores|slice:":50" %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>{% endif %}</div>
+<div class="col-lg-6 small"><div class="card card-body"><b>Formato esperado (primera fila = encabezados)</b>
+<p class="mb-1 mt-2"><u>Huéspedes:</u> <code>tipo_doc, nro_doc, nombre, apellido, email, telefono, nacionalidad, fecha_nacimiento, direccion, localidad, provincia</code></p>
+<p class="mb-1"><u>Reservas:</u> <code>nro_doc, nombre, apellido, habitacion, entrada, salida, huespedes, canal, referencia</code></p>
+<p class="mb-0 text-muted">Se detectan duplicados por documento. Las reservas se validan contra la disponibilidad (no se permiten superposiciones). Canales: directo, telefono, whatsapp, email, booking, web, otro.</p></div></div></div>
+{% endblock %}

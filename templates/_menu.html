@@ -1,0 +1,61 @@
+{% load impulso %}
+{% modulo "caja" as m_caja %}{% modulo "facturacion" as m_fact %}{% modulo "compras" as m_compras %}{% modulo "inventario" as m_inv %}
+{% modulo "limpieza" as m_limp %}{% modulo "mantenimiento" as m_mant %}{% modulo "personal" as m_pers %}{% modulo "bi" as m_bi %}
+{% modulo "ia" as m_ia %}{% modulo "multi_hotel" as m_multi %}
+<nav class="nav flex-column menu py-2">
+  {% if user.es_superadmin_impulso %}
+  <div class="menu-titulo">Impulso</div>
+  <a class="nav-link" href="{% url 'saas_panel' %}"><i class="bi bi-buildings"></i> Clientes</a>
+  <a class="nav-link" href="{% url 'soporte_lista' %}"><i class="bi bi-life-preserver"></i> Mesa de ayuda</a>
+  {% endif %}
+  {% if hotel %}
+  {% if perms.reservas.view_reserva %}
+  <div class="menu-titulo">Recepción</div>
+  <a class="nav-link" href="{% url 'panel_recepcion' %}"><i class="bi bi-speedometer2"></i> Panel del día</a>
+  <a class="nav-link" href="{% url 'rack' %}"><i class="bi bi-calendar3"></i> Rack / calendario</a>
+  {% endif %}
+  {% if perms.habitaciones.view_habitacion %}<a class="nav-link" href="{% url 'mapa_habitaciones' %}"><i class="bi bi-grid-3x3-gap"></i> Mapa de habitaciones</a>{% endif %}
+  {% if perms.reservas.view_reserva %}
+  <a class="nav-link" href="{% url 'reserva_lista' %}"><i class="bi bi-journal-bookmark"></i> Reservas</a>
+  {% endif %}
+  {% if perms.huespedes.view_huesped %}<a class="nav-link" href="{% url 'huesped_lista' %}"><i class="bi bi-people"></i> Huéspedes</a>{% endif %}
+
+  {% if m_caja and perms.caja.view_caja or m_fact and perms.facturacion.view_factura %}<div class="menu-titulo">Administración</div>{% endif %}
+  {% if m_caja and perms.caja.add_caja %}<a class="nav-link" href="{% url 'caja_mia' %}"><i class="bi bi-cash-coin"></i> Mi caja</a>{% endif %}
+  {% if m_caja and perms.caja.ver_caja_general %}<a class="nav-link" href="{% url 'caja_lista' %}"><i class="bi bi-safe"></i> Cajas</a>{% endif %}
+  {% if m_fact and perms.facturacion.view_factura %}<a class="nav-link" href="{% url 'factura_lista' %}"><i class="bi bi-receipt"></i> Facturación</a>{% endif %}
+  {% if m_caja and perms.bi.ver_informes_economicos %}<a class="nav-link" href="{% url 'informes_economicos' %}"><i class="bi bi-file-earmark-bar-graph"></i> Informes económicos</a>{% endif %}
+  {% if m_compras and perms.compras.view_gasto %}<a class="nav-link" href="{% url 'gasto_lista' %}"><i class="bi bi-wallet2"></i> Gastos</a>{% endif %}
+  {% if m_compras and perms.compras.view_proveedor %}<a class="nav-link" href="{% url 'proveedor_lista' %}"><i class="bi bi-truck"></i> Proveedores</a>{% endif %}
+  {% if m_compras and perms.compras.view_ordencompra %}<a class="nav-link" href="{% url 'orden_lista' %}"><i class="bi bi-cart3"></i> Compras</a>{% endif %}
+  {% if m_inv and perms.inventario.view_producto %}<a class="nav-link" href="{% url 'stock_lista' %}"><i class="bi bi-box-seam"></i> Inventario</a>{% endif %}
+
+  {% if m_limp and perms.limpieza.view_tarealimpieza or m_mant and perms.mantenimiento.view_incidencia %}<div class="menu-titulo">Operaciones</div>{% endif %}
+  {% if m_limp and perms.limpieza.add_tarealimpieza %}<a class="nav-link" href="{% url 'limpieza_tablero' %}"><i class="bi bi-clipboard-check"></i> Limpieza</a>{% endif %}
+  {% if m_limp and perms.limpieza.change_tarealimpieza %}<a class="nav-link" href="{% url 'limpieza_mis_tareas' %}"><i class="bi bi-phone"></i> Mis tareas</a>{% endif %}
+  {% if m_limp and perms.limpieza.view_objetoolvidado %}<a class="nav-link" href="{% url 'objeto_lista' %}"><i class="bi bi-bag"></i> Objetos olvidados</a>{% endif %}
+  {% if m_mant and perms.mantenimiento.view_incidencia %}<a class="nav-link" href="{% url 'incidencia_tablero' %}"><i class="bi bi-tools"></i> Incidencias</a>{% endif %}
+  {% if m_mant and perms.mantenimiento.view_mantenimiento %}<a class="nav-link" href="{% url 'orden_preventiva_lista' %}"><i class="bi bi-calendar-check"></i> Órdenes de trabajo</a>{% endif %}
+  {% if m_mant and perms.mantenimiento.view_activo %}<a class="nav-link" href="{% url 'activo_lista' %}"><i class="bi bi-hdd-rack"></i> Activos y planes</a>{% endif %}
+  {% if m_pers and perms.personal.view_empleado %}<a class="nav-link" href="{% url 'empleado_lista' %}"><i class="bi bi-person-badge"></i> Personal</a>{% endif %}
+
+  {% if m_bi and perms.bi.ver_dashboard %}
+  <div class="menu-titulo">Inteligencia</div>
+  <a class="nav-link" href="{% url 'bi_dashboard' %}"><i class="bi bi-graph-up-arrow"></i> Dashboard</a>
+  {% if m_ia %}
+  <a class="nav-link" href="{% url 'bi_prediccion' %}"><i class="bi bi-magic"></i> Predicción de demanda</a>
+  <a class="nav-link" href="{% url 'bi_tarifas' %}"><i class="bi bi-tags"></i> Tarifas inteligentes</a>
+  <a class="nav-link" href="{% url 'bi_mant_predictivo' %}"><i class="bi bi-activity"></i> Mant. predictivo</a>
+  {% endif %}
+  <a class="nav-link" href="{% url 'bi_alertas' %}"><i class="bi bi-bell"></i> Alertas</a>
+  {% if m_multi %}<a class="nav-link" href="{% url 'bi_consolidado' %}"><i class="bi bi-diagram-3"></i> Consolidado cadena</a>{% endif %}
+  {% endif %}
+
+  {% if perms.core.change_hotel %}
+  <div class="menu-titulo">Sistema</div>
+  <a class="nav-link" href="{% url 'configuracion' %}"><i class="bi bi-gear"></i> Configuración</a>
+  {% if request.suscripcion %}<a class="nav-link" href="{% url 'saas_mi_suscripcion' %}"><i class="bi bi-credit-card"></i> Mi suscripción</a>{% endif %}
+  {% endif %}
+  <a class="nav-link" href="{% url 'ayuda' %}"><i class="bi bi-question-circle"></i> Ayuda</a>
+  {% endif %}
+</nav>

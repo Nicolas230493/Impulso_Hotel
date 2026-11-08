@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1 class="h4">Activar doble factor</h1>
+<div class="card card-body" style="max-width:460px">
+  <p class="small">Escanee el código con Google Authenticator, Microsoft Authenticator o similar e ingrese el código de 6 dígitos.</p>
+  <img src="data:image/png;base64,{{ qr }}" alt="Código QR" class="mx-auto" style="width:220px">
+  <form method="post">{% csrf_token %}{% include "_form_campos.html" %}<button class="btn btn-primary mt-2">Activar</button></form>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Soporte{% endblock %}
+{% block contenido %}
+<h1 class="h4">{% if es_soporte %}Mesa de ayuda{% else %}Soporte Impulso{% endif %}</h1>
+<div class="row g-3">{% if not es_soporte %}<div class="col-lg-5"><form method="post" class="card card-body">{% csrf_token %}<h2 class="h6">Nueva consulta</h2>{% include "_form_campos.html" %}<button class="btn btn-primary mt-2">Enviar</button></form>
+<p class="small mt-2">Antes de escribir, revise la <a href="{% url 'ayuda' %}">base de conocimiento</a>.</p></div>{% endif %}
+<div class="col"><div class="list-group">{% for t in tickets %}<a href="{% url 'soporte_ticket' t.pk %}" class="list-group-item list-group-item-action"><div class="d-flex justify-content-between"><b>#{{ t.pk }} {{ t.asunto }}</b><span class="badge text-bg-secondary">{{ t.get_estado_display }}</span></div>
+<div class="small text-muted">{% if es_soporte %}{{ t.empresa }} · {% endif %}{{ t.usuario }} · {{ t.get_prioridad_display }} · {{ t.actualizado_en|timesince }}</div></a>{% empty %}<div class="list-group-item text-muted">Sin tickets.</div>{% endfor %}</div></div></div>
+{% endblock %}

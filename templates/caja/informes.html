@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Informes económicos{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Informes económicos</h1>
+<form class="d-flex gap-1"><input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}" class="form-control form-control-sm"><input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}" class="form-control form-control-sm"><button class="btn btn-sm btn-outline-secondary">Ver</button>
+<button class="btn btn-sm btn-outline-secondary" name="formato" value="pdf"><i class="bi bi-filetype-pdf"></i></button><button class="btn btn-sm btn-outline-secondary" name="formato" value="xlsx"><i class="bi bi-file-earmark-excel"></i></button></form></div>
+<ul class="nav nav-tabs" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#t1">Ingresos por día y medio</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t2">Cierres de caja</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t3">Cuentas pendientes ({{ pendientes|length }})</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t4">IVA ventas</button></li>
+</ul>
+<div class="tab-content bg-white border border-top-0 p-2">
+  <div class="tab-pane fade show active tabla-resp" id="t1"><table class="table table-sm small"><thead><tr><th>Fecha</th>{% for m in medios %}<th class="text-end">{{ m }}</th>{% endfor %}<th class="text-end">Total</th></tr></thead><tbody>
+    {% for f in filas_dia %}<tr><td>{{ f.fecha|date:"D d/m" }}</td>{% for v in f.valores %}<td class="text-end">{{ v|pesos }}</td>{% endfor %}<td class="text-end fw-semibold">{{ f.total|pesos }}</td></tr>{% empty %}<tr><td colspan="9" class="text-muted">Sin cobros en el período.</td></tr>{% endfor %}</tbody>
+    <tfoot><tr><th>Total</th>{% for v in totales_medio %}<th class="text-end">{{ v|pesos }}</th>{% endfor %}<th class="text-end">{{ total_general|pesos }}</th></tr></tfoot></table></div>
+  <div class="tab-pane fade tabla-resp" id="t2"><table class="table table-sm small"><thead><tr><th>Cierre</th><th>Usuario</th><th class="text-end">Esperado</th><th class="text-end">Contado</th><th class="text-end">Diferencia</th></tr></thead><tbody>
+    {% for c in cierres %}<tr><td><a href="{% url 'caja_detalle' c.pk %}">{{ c.cierre|date:"d/m/Y H:i" }}</a></td><td>{{ c.usuario }}</td><td class="text-end">{{ c.monto_esperado|pesos }}</td><td class="text-end">{{ c.monto_contado|pesos }}</td><td class="text-end {% if c.diferencia %}text-danger{% endif %}">{{ c.diferencia|pesos }}</td></tr>{% empty %}<tr><td colspan="5" class="text-muted">Sin cierres.</td></tr>{% endfor %}</tbody></table></div>
+  <div class="tab-pane fade tabla-resp" id="t3"><table class="table table-sm small"><thead><tr><th>Reserva</th><th>Titular</th><th>Empresa</th><th>Salida</th><th class="text-end">Saldo</th></tr></thead><tbody>
+    {% for p in pendientes %}<tr><td><a href="{% url 'reserva_detalle' p.reserva.pk %}">{{ p.reserva.codigo }}</a></td><td>{{ p.reserva.titular }}</td><td>{{ p.reserva.cuenta_corriente|default:"" }}</td><td>{{ p.reserva.fecha_salida|date:"d/m/Y" }}</td><td class="text-end text-danger">{{ p.saldo|pesos }}</td></tr>{% empty %}<tr><td colspan="5" class="text-muted">No hay cuentas con saldo pendiente.</td></tr>{% endfor %}</tbody></table></div>
+  <div class="tab-pane fade tabla-resp" id="t4"><table class="table table-sm small"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Receptor</th><th class="text-end">Neto</th><th class="text-end">IVA</th><th class="text-end">Exento</th><th class="text-end">Total</th></tr></thead><tbody>
+    {% for f in iva_filas %}<tr><td>{{ f.factura.fecha|date:"d/m/Y" }}</td><td><a href="{% url 'factura_detalle' f.factura.pk %}">{{ f.factura }}</a></td><td>{{ f.factura.receptor_nombre }}</td><td class="text-end">{{ f.neto|pesos }}</td><td class="text-end">{{ f.iva|pesos }}</td><td class="text-end">{{ f.exento|pesos }}</td><td class="text-end">{{ f.total|pesos }}</td></tr>{% empty %}<tr><td colspan="7" class="text-muted">Sin comprobantes autorizados.</td></tr>{% endfor %}</tbody>
+    <tfoot><tr><th colspan="3">Totales</th><th class="text-end">{{ iva_totales.neto|pesos }}</th><th class="text-end">{{ iva_totales.iva|pesos }}</th><th class="text-end">{{ iva_totales.exento|pesos }}</th><th class="text-end">{{ iva_totales.total|pesos }}</th></tr></tfoot></table></div>
+</div>
+{% endblock %}

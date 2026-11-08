@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="d-flex justify-content-between mb-2"><h1 class="h4">Usuarios</h1><a class="btn btn-primary btn-sm" href="{% url 'usuario_nuevo' %}"><i class="bi bi-plus-lg"></i> Nuevo</a></div>
+<div class="tabla-resp"><table class="table table-sm bg-white align-middle">
+<thead><tr><th>Usuario</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
+{% for u in usuarios %}<tr>
+  <td>{{ u.username }}</td><td>{{ u.get_full_name }}</td><td>{{ u.email }}</td><td>{{ u.rol }}</td>
+  <td>{% if not u.is_active %}<span class="badge text-bg-secondary">Baja</span>{% elif u.esta_bloqueado %}<span class="badge text-bg-danger">Bloqueado</span>{% else %}<span class="badge text-bg-success">Activo</span>{% endif %}</td>
+  <td class="text-end text-nowrap">
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'usuario_editar' u.pk %}"><i class="bi bi-pencil"></i></a>
+    {% if u.esta_bloqueado %}<form class="d-inline" method="post" action="{% url 'usuario_desbloquear' u.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-warning">Desbloquear</button></form>{% endif %}
+    {% if u.is_active and u != user %}<form class="d-inline" method="post" action="{% url 'usuario_baja' u.pk %}" onsubmit="return confirm('¿Dar de baja?')">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="bi bi-person-x"></i></button></form>{% endif %}
+  </td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

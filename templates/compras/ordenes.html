@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Compras{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Órdenes de compra</h1><div class="d-flex gap-1">
+<a class="btn btn-sm btn-outline-secondary" href="{% url 'solicitud_lista' %}">Solicitudes</a><a class="btn btn-sm btn-outline-secondary" href="{% url 'comparar_precios' %}">Comparar precios</a>
+{% if perms.compras.add_ordencompra %}<a class="btn btn-primary btn-sm" href="{% url 'orden_nueva' %}"><i class="bi bi-plus-lg"></i> Nueva orden</a>{% endif %}</div></div>
+<form class="mb-2"><select name="estado" class="form-select form-select-sm" style="max-width:240px" onchange="this.form.submit()"><option value="">Todos los estados</option>{% for v, n in estados %}<option value="{{ v }}" {% if v == estado %}selected{% endif %}>{{ n }}</option>{% endfor %}</select></form>
+<div class="tabla-resp"><table class="table table-sm table-hover bg-white small"><thead><tr><th>#</th><th>Fecha</th><th>Proveedor</th><th class="text-end">Total</th><th>Factura</th><th>Estado</th></tr></thead><tbody>
+{% for o in page_obj %}<tr><td><a href="{% url 'orden_detalle' o.pk %}">OC #{{ o.pk }}</a></td><td>{{ o.fecha|date:"d/m/Y" }}</td><td>{{ o.proveedor }}</td><td class="text-end">{{ o.total|pesos }}</td><td>{{ o.factura_numero }}</td><td>{% badge o.estado o.get_estado_display %}</td></tr>
+{% empty %}<tr><td colspan="6" class="text-muted">Sin órdenes.</td></tr>{% endfor %}</tbody></table></div>{% include "_paginacion.html" %}
+{% endblock %}

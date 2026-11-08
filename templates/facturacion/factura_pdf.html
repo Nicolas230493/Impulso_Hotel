@@ -1,0 +1,24 @@
+{% load impulso %}<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><style>
+@page { size: A4; margin: 1.2cm; } body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 9pt; }
+.cab { display: flex; border: 1pt solid #000; } .cab > div { flex: 1; padding: 8pt; } .letra { flex: 0 0 60pt !important; text-align: center; border-left: 1pt solid #000; border-right: 1pt solid #000; }
+.letra b { font-size: 28pt; display: block; } h1 { font-size: 14pt; margin: 0; } table { width: 100%; border-collapse: collapse; margin-top: 8pt; }
+th, td { border-bottom: .5pt solid #aaa; padding: 3pt; } th { background: #eee; } .r { text-align: right; } .box { border: 1pt solid #000; padding: 6pt; margin-top: 6pt; }
+.marca { color: #c00; font-weight: bold; text-align: center; font-size: 12pt; }
+</style></head><body>
+{% if f.simulada %}<p class="marca">COMPROBANTE SIMULADO – SIN VALIDEZ FISCAL</p>{% endif %}
+<div class="cab">
+  <div><h1>{{ hotel.nombre }}</h1>{{ hotel.direccion }} {{ hotel.localidad }}<br>{{ hotel.get_condicion_iva_display }}</div>
+  <div class="letra"><b>{{ f.letra }}</b>Cód. {{ f.tipo|stringformat:"02d" }}</div>
+  <div><h1>{{ f.get_tipo_display }}</h1>Nº {{ f.numero_formateado }}<br>Fecha: {{ f.fecha|date:"d/m/Y" }}<br>CUIT: {{ hotel.cuit }}</div>
+</div>
+<div class="box">Período facturado: {{ f.servicio_desde|date:"d/m/Y" }} al {{ f.servicio_hasta|date:"d/m/Y" }}</div>
+<div class="box"><b>{{ f.receptor_nombre }}</b> · {{ f.get_receptor_doc_tipo_display }} {{ f.receptor_doc_nro }} · {{ f.get_receptor_condicion_iva_display }}<br>{{ f.receptor_domicilio }}
+{% if f.factura_asociada %}<br>Comprobante asociado: {{ f.factura_asociada }} · Motivo: {{ f.motivo }}{% endif %}</div>
+<table><tr><th>Descripción</th><th class="r">Cant.</th><th class="r">Precio unit.</th>{% if f.letra == "A" %}<th class="r">Alíc. IVA</th><th class="r">Neto</th>{% endif %}<th class="r">Subtotal</th></tr>
+{% for i in items %}<tr><td>{{ i.descripcion }}</td><td class="r">{{ i.cantidad|floatformat:"-2" }}</td><td class="r">{% if f.letra == "A" %}{{ i.neto|numero:2 }}{% else %}{{ i.precio_unitario|numero:2 }}{% endif %}</td>{% if f.letra == "A" %}<td class="r">{{ i.alicuota_iva|floatformat:"-1" }}%</td><td class="r">{{ i.neto|numero:2 }}</td>{% endif %}<td class="r">{{ i.total|numero:2 }}</td></tr>{% endfor %}</table>
+<table style="width:45%;margin-left:55%">
+{% if f.letra == "A" %}<tr><td>Neto gravado</td><td class="r">{{ f.neto_gravado|pesos }}</td></tr><tr><td>IVA</td><td class="r">{{ f.iva|pesos }}</td></tr>{% if f.exento %}<tr><td>Exento</td><td class="r">{{ f.exento|pesos }}</td></tr>{% endif %}{% endif %}
+<tr><th>Total</th><th class="r">{{ f.total|pesos }}</th></tr></table>
+{% if f.letra == "B" %}<p style="font-size:8pt">Régimen de Transparencia Fiscal al Consumidor (Ley 27.743): IVA contenido {{ f.iva|pesos }}.</p>{% endif %}
+<div class="box" style="display:flex;align-items:center;gap:12pt"><img src="data:image/png;base64,{{ qr }}" style="width:90pt"><div><b>CAE:</b> {{ f.cae }}<br><b>Vencimiento CAE:</b> {{ f.cae_vencimiento|date:"d/m/Y" }}<br>Comprobante autorizado por ARCA</div></div>
+</body></html>

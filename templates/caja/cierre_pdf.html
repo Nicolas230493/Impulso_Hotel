@@ -1,0 +1,17 @@
+{% extends "pdf_base.html" %}{% load impulso %}
+{% block titulo_pdf %}Cierre de caja – {{ caja.usuario }}{% endblock %}
+{% block cuerpo %}
+<p>Apertura: {{ caja.apertura|date:"d/m/Y H:i" }} · Cierre: {{ caja.cierre|date:"d/m/Y H:i"|default:"(abierta)" }} · Turno: {{ caja.turno|default:"—" }}</p>
+<h2>Arqueo</h2>
+<table><tr><th></th><th class="r">ARS</th><th class="r">USD</th></tr>
+<tr><td>Monto inicial</td><td class="r">{{ caja.monto_inicial|pesos }}</td><td class="r">{{ caja.monto_inicial_usd|numero:2 }}</td></tr>
+<tr><td>Esperado</td><td class="r">{{ caja.monto_esperado|pesos }}</td><td class="r">{{ caja.monto_esperado_usd|numero:2 }}</td></tr>
+<tr><td>Contado</td><td class="r">{{ caja.monto_contado|pesos }}</td><td class="r">{{ caja.monto_contado_usd|numero:2 }}</td></tr>
+<tr class="tot"><td>Diferencia</td><td class="r">{{ caja.diferencia|pesos }}</td><td class="r">{{ caja.diferencia_usd|numero:2 }}</td></tr></table>
+<h2>Totales por medio de pago</h2>
+<table><tr><th>Medio</th><th>Moneda</th><th class="r">Neto</th></tr>{% for f in resumen.por_medio %}<tr><td>{{ f.medio }}</td><td>{{ f.moneda }}</td><td class="r">{{ f.total|numero:2 }}</td></tr>{% endfor %}</table>
+<h2>Movimientos</h2>
+<table><tr><th>Fecha</th><th>Tipo</th><th>Medio</th><th>Concepto</th><th class="r">Importe</th></tr>
+{% for m in movimientos %}<tr><td>{{ m.fecha|date:"d/m H:i" }}</td><td>{{ m.get_tipo_display }}</td><td>{{ m.get_medio_display }}</td><td>{{ m.concepto }}</td><td class="r">{{ m.moneda }} {{ m.importe|numero:2 }}</td></tr>{% endfor %}</table>
+<p style="margin-top:40pt">Firma responsable: ______________________ &nbsp;&nbsp; Firma administración: ______________________</p>
+{% endblock %}

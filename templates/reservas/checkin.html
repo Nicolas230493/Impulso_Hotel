@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block titulo %}Check-in {{ r.codigo }}{% endblock %}
+{% block contenido %}
+<h1 class="h4">Check-in · {{ r.titular }} <small class="text-muted">{{ r.codigo }}</small></h1>
+<form method="post">{% csrf_token %}
+{% if pedir_confirmar_sucia %}<div class="form-check alert alert-warning"><input class="form-check-input" type="checkbox" name="confirmar_sucia" id="cs" value="1"><label class="form-check-label" for="cs">La habitación figura sucia. Continuar igualmente.</label></div>{% endif %}
+{% for d in detalles %}
+<div class="card mb-2"><div class="card-header d-flex align-items-center gap-2">
+  <input class="form-check-input" type="checkbox" name="det_{{ d.pk }}" value="1" checked id="det{{ d.pk }}">
+  <label for="det{{ d.pk }}" class="fw-semibold">Habitación {{ d.habitacion }} · {{ d.tipo_habitacion }} <span class="badge text-bg-light">{{ d.habitacion.get_estado_display }}</span></label></div>
+  <div class="card-body">
+    <p class="small text-muted mb-2">Titular incluido. Acompañantes (hasta {{ d.tipo_habitacion.capacidad|add:"-1" }}):</p>
+    {% with rango="x"|rjust:d.tipo_habitacion.capacidad %}{% for _ in rango %}{% if not forloop.last %}
+    <div class="row g-1 mb-1">
+      <div class="col-3 col-md-2"><select name="a_{{ d.pk }}_{{ forloop.counter0 }}_tipo_doc" class="form-select form-select-sm"><option>DNI</option><option value="PAS">Pasaporte</option><option value="CI">CI ext.</option></select></div>
+      <div class="col-9 col-md-3"><input name="a_{{ d.pk }}_{{ forloop.counter0 }}_nro_doc" class="form-control form-control-sm" placeholder="Nº documento"></div>
+      <div class="col-6 col-md-3"><input name="a_{{ d.pk }}_{{ forloop.counter0 }}_nombre" class="form-control form-control-sm" placeholder="Nombre"></div>
+      <div class="col-6 col-md-4"><input name="a_{{ d.pk }}_{{ forloop.counter0 }}_apellido" class="form-control form-control-sm" placeholder="Apellido"></div>
+    </div>{% endif %}{% endfor %}{% endwith %}
+  </div></div>
+{% empty %}<div class="alert alert-info">Todas las habitaciones ya tienen check-in.</div>{% endfor %}
+{% if detalles %}<button class="btn btn-success btn-lg"><i class="bi bi-box-arrow-in-right"></i> Confirmar check-in</button>{% endif %}
+<a class="btn btn-outline-secondary btn-lg" href="{% url 'reserva_detalle' r.pk %}">Volver</a>
+</form>
+{% endblock %}

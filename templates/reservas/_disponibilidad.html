@@ -1,0 +1,13 @@
+{% load impulso %}
+{% if error %}<div class="text-muted small">{{ error }}</div>{% else %}
+<div class="small text-muted mb-1">{{ noches }} noche/s · {{ filas|length }} habitación/es disponibles. Marque una o varias.</div>
+<div class="list-group" style="max-height:340px;overflow:auto">
+{% for f in filas %}
+  <label class="list-group-item d-flex align-items-center gap-2 py-1">
+    <input class="form-check-input" type="checkbox" name="hab_{{ f.hab.pk }}" value="1" {% if f.marcada %}checked{% endif %}>
+    <div class="flex-grow-1"><b>{{ f.hab.numero }}</b> · {{ f.hab.tipo.nombre }} <span class="text-muted small">(hasta {{ f.hab.tipo.capacidad }}) · piso {{ f.hab.piso }}{% if f.hab.estado == "sucia" %} · <span class="text-warning">sucia</span>{% endif %}</span></div>
+    <select name="cant_{{ f.hab.pk }}" class="form-select form-select-sm" style="width:80px" aria-label="Huéspedes">{% for n in f.rango %}<option value="{{ n }}" {% if n == f.cant %}selected{% endif %}>{{ n }} p.</option>{% endfor %}</select>
+    <span class="text-end" style="min-width:110px">{{ f.total|pesos }}</span>
+  </label>
+{% empty %}<div class="list-group-item text-danger">No hay habitaciones disponibles en esas fechas.</div>{% endfor %}
+</div>{% endif %}

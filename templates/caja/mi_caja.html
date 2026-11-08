@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Mi caja{% endblock %}
+{% block contenido %}
+<h1 class="h4">Mi caja</h1>
+{% if not caja %}
+<form method="post" class="card card-body" style="max-width:520px">{% csrf_token %}<h2 class="h6">Abrir caja</h2>{% include "_form_campos.html" with form=abrir %}<button class="btn btn-success mt-2">Abrir caja</button></form>
+{% else %}
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card card-body mb-3">
+      <div class="d-flex justify-content-between"><h2 class="h6 mb-1">{{ caja }}</h2>{% badge caja.estado caja.get_estado_display %}</div>
+      <div class="small text-muted mb-2">Turno {{ caja.turno|default:"—" }} · Inicial {{ caja.monto_inicial|pesos }}{% if caja.monto_inicial_usd %} / USD {{ caja.monto_inicial_usd }}{% endif %}</div>
+      <table class="table table-sm small mb-2"><thead><tr><th>Medio</th><th>Moneda</th><th class="text-end">Neto</th></tr></thead><tbody>
+      {% for f in resumen.por_medio %}<tr><td>{{ f.medio }}</td><td>{{ f.moneda }}</td><td class="text-end">{{ f.total|pesos }}</td></tr>{% empty %}<tr><td colspan="3" class="text-muted">Sin movimientos.</td></tr>{% endfor %}</tbody></table>
+      <div class="alert alert-light border py-2 mb-0"><b>Efectivo esperado:</b> {{ resumen.esperado.ARS|pesos }}{% if resumen.esperado.USD %} · USD {{ resumen.esperado.USD|numero:2 }}{% endif %}</div>
+    </div>
+    <form method="post" action="{% url 'caja_cerrar' caja.pk %}" class="card card-body border-danger mb-3" onsubmit="return confirm('¿Cerrar la caja? No admitirá más movimientos.')">{% csrf_token %}
+      <h2 class="h6">Cerrar caja con arqueo</h2>{% include "_form_campos.html" with form=cerrar %}<button class="btn btn-danger mt-2">Cerrar caja</button></form>
+    <form method="post" action="{% url 'caja_movimiento' caja.pk %}" class="card card-body">{% csrf_token %}
+      <h2 class="h6">Movimiento manual de efectivo</h2>{% include "_form_campos.html" with form=mov_form %}<button class="btn btn-outline-primary btn-sm mt-2">Registrar</button></form>
+  </div>
+  <div class="col-lg-7"><div class="card"><div class="card-header fw-semibold">Movimientos</div>
+    <div class="tabla-resp"><table class="table table-sm small mb-0"><thead><tr><th>Hora</th><th>Tipo</th><th>Medio</th><th>Concepto</th><th class="text-end">Importe</th></tr></thead><tbody>
+    {% for m in movimientos %}<tr><td>{{ m.fecha|date:"H:i" }}</td><td>{{ m.get_tipo_display }}</td><td>{{ m.get_medio_display }}</td><td>{{ m.concepto }}</td><td class="text-end {% if m.tipo == 'egreso' %}text-danger{% endif %}">{% if m.moneda == "USD" %}USD {{ m.importe|numero:2 }}{% else %}{{ m.importe|pesos }}{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="5" class="text-muted">Sin movimientos.</td></tr>{% endfor %}</tbody></table></div></div></div>
+</div>
+{% endif %}
+{% if ultimas %}<h2 class="h6 mt-3">Cajas anteriores</h2><ul class="small">{% for c in ultimas %}<li><a href="{% url 'caja_detalle' c.pk %}">{{ c }}</a> · diferencia {{ c.diferencia|pesos }}</li>{% endfor %}</ul>{% endif %}
+{% endblock %}

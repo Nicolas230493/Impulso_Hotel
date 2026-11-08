@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1 class="h4">{{ titulo }}</h1>
+<form method="post" enctype="multipart/form-data" class="card card-body" style="max-width:820px" novalidate>{% csrf_token %}
+  {% include "_form_campos.html" %}
+  <div class="d-flex gap-2 mt-2">
+    <button class="btn btn-primary"><i class="bi bi-check-lg"></i> Guardar</button>
+    {% if url_lista %}<a class="btn btn-outline-secondary" href="{{ url_lista }}">Cancelar</a>{% endif %}
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Inventario{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Inventario</h1>
+<div class="d-flex gap-1"><a class="btn btn-sm btn-outline-secondary" href="{% url 'producto_lista' %}">Productos</a><a class="btn btn-sm btn-outline-secondary" href="{% url 'deposito_lista' %}">Depósitos</a>
+{% if perms.compras.view_ordencompra %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'comparar_precios' %}">Comparar precios</a>{% endif %}
+<a class="btn btn-sm btn-outline-secondary" href="?formato=xlsx"><i class="bi bi-file-earmark-excel"></i></a></div></div>
+<form class="mb-2"><select name="categoria" class="form-select form-select-sm" style="max-width:280px" onchange="this.form.submit()"><option value="">Todas las categorías</option>{% for v, n in categorias %}<option value="{{ v }}" {% if v == categoria %}selected{% endif %}>{{ n }}</option>{% endfor %}</select></form>
+<div class="row g-3"><div class="col-lg-8"><div class="tabla-resp"><table class="table table-sm bg-white small"><thead><tr><th>Producto</th>{% for d in depositos %}<th class="text-end">{{ d.nombre }}</th>{% endfor %}<th class="text-end">Total</th><th class="text-end">Mínimo</th></tr></thead><tbody>
+{% for f in filas %}<tr class="{% if f.bajo %}table-warning{% endif %}"><td>{{ f.p.nombre }} <span class="text-muted">{{ f.p.unidad }}</span></td>{% for c in f.por_deposito %}<td class="text-end">{{ c|numero:2 }}</td>{% endfor %}<td class="text-end fw-semibold">{{ f.p.total|numero:2 }}</td><td class="text-end">{{ f.p.stock_minimo|numero:2 }}</td></tr>
+{% empty %}<tr><td colspan="9" class="text-muted">Sin productos.</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="col-lg-4">{% if perms.inventario.add_movimientostock %}<form method="post" action="{% url 'stock_movimiento' %}" class="card card-body mb-3">{% csrf_token %}<h2 class="h6">Registrar movimiento</h2>{% include "_form_campos.html" %}<button class="btn btn-primary btn-sm mt-2">Registrar</button></form>{% endif %}
+<div class="card"><div class="card-header small fw-semibold">Últimos movimientos</div><ul class="list-group list-group-flush small">{% for m in movimientos %}<li class="list-group-item py-1">{{ m.creado_en|date:"d/m H:i" }} · {{ m.get_tipo_display }} {{ m.cantidad|numero:2 }} {{ m.producto }} ({{ m.deposito }}) → {{ m.saldo_resultante|numero:2 }}<div class="text-muted">{{ m.motivo }}</div></li>{% endfor %}</ul></div></div></div>
+{% endblock %}

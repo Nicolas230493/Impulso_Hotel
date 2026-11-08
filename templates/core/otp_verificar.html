@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="card card-body mx-auto" style="max-width:380px"><h1 class="h5">Verificación en dos pasos</h1>
+<form method="post">{% csrf_token %}{% include "_form_campos.html" %}<button class="btn btn-primary mt-2 w-100">Verificar</button></form></div>
+{% endblock %}

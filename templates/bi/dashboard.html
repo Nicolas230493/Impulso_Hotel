@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Dashboard{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+  <h1 class="h4 mb-0">Dashboard gerencial <small class="text-muted fs-6">{{ desde|date:"d/m/Y" }}{% if hasta != desde %} – {{ hasta|date:"d/m/Y" }}{% endif %}{% if hasta == hoy and vista != "diaria" %} (a la fecha){% endif %}</small></h1>
+  <form class="d-flex flex-wrap gap-1">
+    <div class="btn-group btn-group-sm">
+      <a class="btn btn-outline-secondary {% if vista == 'diaria' %}active{% endif %}" href="?vista=diaria&fecha={{ ref|date:'Y-m-d' }}">Diaria</a>
+      <a class="btn btn-outline-secondary {% if vista == 'mensual' %}active{% endif %}" href="?vista=mensual&fecha={{ ref|date:'Y-m-d' }}">Mensual</a>
+      <a class="btn btn-outline-secondary {% if vista == 'anual' %}active{% endif %}" href="?vista=anual&fecha={{ ref|date:'Y-m-d' }}">Anual</a></div>
+    <a class="btn btn-sm btn-outline-secondary" href="?vista={{ vista }}&fecha={{ anterior_ref|date:'Y-m-d' }}">‹</a>
+    <input type="hidden" name="vista" value="{{ vista }}"><input type="date" name="fecha" value="{{ ref|date:'Y-m-d' }}" class="form-control form-control-sm" onchange="this.form.submit()" style="max-width:160px">
+    <a class="btn btn-sm btn-outline-secondary" href="?vista={{ vista }}&fecha={{ siguiente_ref|date:'Y-m-d' }}">›</a>
+    <a class="btn btn-sm btn-outline-secondary" href="?vista={{ vista }}&fecha={{ ref|date:'Y-m-d' }}&formato=pdf"><i class="bi bi-filetype-pdf"></i></a>
+    <a class="btn btn-sm btn-outline-secondary" href="?vista={{ vista }}&fecha={{ ref|date:'Y-m-d' }}&formato=xlsx"><i class="bi bi-file-earmark-excel"></i></a>
+  </form>
+</div>
+{% for a in alertas %}<div class="alert alert-{{ a.nivel }} py-1 small mb-1"><i class="bi bi-exclamation-triangle"></i> <a href="{% url 'bi_alertas' %}" class="alert-link">{{ a.titulo }}</a> – {{ a.mensaje|truncatechars:120 }}</div>{% endfor %}
+<div class="row g-2 my-2">
+  <div class="col-6 col-md-4 col-xl-2"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Ocupación</div><div class="valor">{{ k.ocupacion|floatformat:1 }} %</div>{% include "bi/_var.html" with v=var.ocupacion %}<div class="small text-muted">{{ k.noches_ocupadas }} / {{ k.noches_disponibles }} noches</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="card card-body tarjeta-kpi"><div class="etiqueta">ADR (tarifa promedio)</div><div class="valor">{{ k.adr|pesos:0 }}</div>{% include "bi/_var.html" with v=var.adr %}</div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="card card-body tarjeta-kpi"><div class="etiqueta">RevPAR</div><div class="valor">{{ k.revpar|pesos:0 }}</div>{% include "bi/_var.html" with v=var.revpar %}</div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Ingresos totales</div><div class="valor">{{ k.ingresos_totales|pesos:0 }}</div>{% include "bi/_var.html" with v=var.ingresos_totales %}</div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Rentabilidad</div><div class="valor {% if k.rentabilidad < 0 %}text-danger{% endif %}">{{ k.rentabilidad|pesos:0 }}</div>{% include "bi/_var.html" with v=var.rentabilidad %}<div class="small text-muted">Gastos {{ k.gastos_operativos|pesos:0 }}</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Reservas del período</div><div class="valor">{{ k.reservas }}</div><div class="small text-muted">Estadía {{ k.estadia_promedio }} n. · antelación {{ k.antelacion_promedio }} d.</div></div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Cancelación</div><div class="valor">{{ k.tasa_cancelacion|floatformat:1 }} %</div>{% include "bi/_var.html" with v=var.tasa_cancelacion invertido=True %}</div></div>
+  <div class="col-6 col-md-4 col-xl-2"><div class="card card-body tarjeta-kpi"><div class="etiqueta">No-show</div><div class="valor">{{ k.tasa_no_show|floatformat:1 }} %</div>{% include "bi/_var.html" with v=var.tasa_no_show invertido=True %}</div></div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-8"><div class="card card-body"><h2 class="h6">Ocupación diaria (%)</h2><div style="height:260px"><canvas id="g-ocup" aria-label="Ocupación diaria"></canvas></div></div></div>
+  <div class="col-lg-4"><div class="card card-body"><h2 class="h6">Ingresos por canal</h2><div style="height:260px"><canvas id="g-canal" aria-label="Ingresos por canal"></canvas></div></div></div>
+  <div class="col-lg-6"><div class="card card-body"><h2 class="h6">Ingresos por tipo de habitación</h2><div style="height:220px"><canvas id="g-tipo"></canvas></div></div></div>
+  <div class="col-lg-6"><div class="card card-body"><h2 class="h6">Costo de mantenimiento por mes</h2><div style="height:220px"><canvas id="g-mant"></canvas></div></div></div>
+  <div class="col-lg-6"><div class="card card-body small"><h2 class="h6">Costo de mantenimiento por habitación</h2>{% for n, v in k.costo_mant_por_habitacion.items|slice:":10" %}<div class="d-flex justify-content-between border-bottom py-1"><span>{{ n }}</span><span>{{ v|pesos }}</span></div>{% empty %}<p class="text-muted">Sin datos.</p>{% endfor %}</div></div>
+  <div class="col-lg-6"><div class="card card-body small"><h2 class="h6">Costo de mantenimiento por activo</h2>{% for n, v in k.costo_mant_por_activo.items|slice:":10" %}<div class="d-flex justify-content-between border-bottom py-1"><span>{{ n }}</span><span>{{ v|pesos }}</span></div>{% empty %}<p class="text-muted">Sin datos.</p>{% endfor %}</div></div>
+</div>
+<details class="mt-3 small"><summary>Ver tabla comparativa con el mismo período del año anterior</summary>
+<table class="table table-sm bg-white mt-2" style="max-width:640px"><thead><tr><th>Indicador</th><th class="text-end">Período</th><th class="text-end">Año anterior</th><th class="text-end">Variación</th></tr></thead><tbody>
+<tr><td>Ocupación %</td><td class="text-end">{{ k.ocupacion }}</td><td class="text-end">{{ ant.ocupacion }}</td><td class="text-end">{{ var.ocupacion|default:"—" }} %</td></tr>
+<tr><td>ADR</td><td class="text-end">{{ k.adr|pesos }}</td><td class="text-end">{{ ant.adr|pesos }}</td><td class="text-end">{{ var.adr|default:"—" }} %</td></tr>
+<tr><td>RevPAR</td><td class="text-end">{{ k.revpar|pesos }}</td><td class="text-end">{{ ant.revpar|pesos }}</td><td class="text-end">{{ var.revpar|default:"—" }} %</td></tr>
+<tr><td>Ingresos alojamiento</td><td class="text-end">{{ k.ingresos_alojamiento|pesos }}</td><td class="text-end">{{ ant.ingresos_alojamiento|pesos }}</td><td class="text-end">{{ var.ingresos_alojamiento|default:"—" }} %</td></tr>
+<tr><td>Rentabilidad</td><td class="text-end">{{ k.rentabilidad|pesos }}</td><td class="text-end">{{ ant.rentabilidad|pesos }}</td><td class="text-end">{{ var.rentabilidad|default:"—" }} %</td></tr>
+</tbody></table></details>
+{% endblock %}
+{% block scripts %}{% load static %}{{ graficos|json_script:"datos-graficos" }}<script src="{% static 'js/graficos.js' %}"></script><script>
+const G = JSON.parse(document.getElementById("datos-graficos").textContent);
+const pct = v => Number(v).toFixed(0) + " %";
+lineas("g-ocup", G.ocupacion.labels, [{label: "Período", data: G.ocupacion.data, color: 0}, {label: "Año anterior", data: G.ocupacion.anterior, color: 1, dash: [4, 3]}], pct, 100);
+barras("g-canal", G.canal.labels, G.canal.data, "Ingresos", pesos, true);
+barras("g-tipo", G.tipo.labels, G.tipo.data, "Ingresos", pesos, true);
+barras("g-mant", G.mant_mes.labels, G.mant_mes.data, "Costo", pesos, false);
+</script>{% endblock %}

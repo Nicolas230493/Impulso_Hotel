@@ -1,0 +1,272 @@
+=====================================================================
+ IMPULSO HOTEL - RESUMEN DE LO HECHO
+ Fecha: 05/11/2026
+ Base: "Impulso Hotel — Specs por fases.md" (las 5 fases)
+=====================================================================
+
+1. QUÉ SE CONSTRUYÓ
+---------------------------------------------------------------------
+Un sistema web completo de gestión hotelera (PMS + administración +
+operaciones + inteligencia de negocios + comercialización SaaS),
+responsive (computadora, tablet y celular).
+
+Tamaño: ~13.500 líneas de Python, 79 pantallas (plantillas HTML),
+77 tests automatizados.
+
+Stack (el definido en la spec):
+  - Python 3.12 + Django 5.1
+  - Django REST Framework, API en /api/v1/ documentada con Swagger
+    (drf-spectacular) en /api/v1/docs/
+  - PostgreSQL 16
+  - Plantillas Django + Bootstrap 5 + HTMX (actualización en vivo)
+  - Chart.js (gráficos)
+  - Pandas, NumPy, scikit-learn (predicciones)
+  - Celery + Redis (tareas programadas)
+  - openpyxl (Excel) y WeasyPrint (PDF)
+
+
+2. CONVENCIONES TRANSVERSALES (sección 2 de la spec)
+---------------------------------------------------------------------
+  - Multi-hotel desde el inicio: todo dato operativo tiene hotel_id;
+    un middleware fija el hotel activo y todo se filtra por él.
+  - Modelo base común: hotel, creado_en, actualizado_en, creado_por,
+    activo (borrado lógico, nunca físico).
+  - Roles como grupos de Django con permisos por módulo y acción:
+    Administrador, Recepción, Limpieza, Mantenimiento,
+    Administración y compras, Dueño (lectura), Superadmin Impulso.
+  - Auditoría automática: usuario, acción, modelo, valores antes y
+    después, IP y fecha.
+  - Dinero en Decimal(12,2), ARS por defecto, USD con tipo de cambio.
+  - Zona horaria America/Argentina/Buenos_Aires.
+  - Seguridad: contraseñas con hash, bloqueo tras intentos fallidos,
+    recuperación de contraseña, doble factor (TOTP) para
+    administradores, HTTPS y cookies seguras en producción,
+    secretos en .env.
+
+
+3. FASE 1 - MVP: GESTIÓN HOTELERA BÁSICA
+---------------------------------------------------------------------
+  - Usuarios y permisos: login, logout, recuperación de contraseña,
+    alta/baja/modificación, rol, bloqueo por intentos fallidos.
+  - Datos del hotel: CUIT, dirección, horarios de check-in/out,
+    política de cancelación, tolerancia de check-in.
+  - Tipos de habitación y habitaciones.
+  - Tarifas por temporada (gana la más específica) y precio base.
+  - Huéspedes: ficha, historial de estadías, preferencias, búsqueda,
+    detección de duplicados por documento.
+  - Reservas de una o varias habitaciones: crear, modificar,
+    cancelar (con motivo y usuario), canal de origen, seña,
+    cálculo automático del total.
+  - Check-in (con acompañantes), check-out y walk-in en un paso.
+  - Rack / calendario de disponibilidad (crear reserva desde una
+    celda libre).
+  - Mapa de habitaciones por piso con colores, se actualiza solo
+    cada 15 segundos.
+  - Panel de recepción: llegadas, salidas, alojados y ocupación.
+  - No-show automático pasada la hora límite.
+  - Sobre-reserva imposible: validación en el formulario y además
+    una restricción de exclusión en PostgreSQL.
+
+
+4. FASE 2 - ADMINISTRACIÓN Y ECONOMÍA
+---------------------------------------------------------------------
+  - Cuenta del huésped: cargo automático por noche, extras,
+    consumos y restaurante; saldo en tiempo real.
+  - Pagos: efectivo, débito, crédito, transferencia, billeteras;
+    señas, pagos parciales, devoluciones; ARS y USD.
+  - Caja por usuario/turno y caja general; cierre con arqueo
+    (esperado vs. contado y diferencia), exportable a PDF y Excel.
+  - No se permite check-out con saldo, salvo autorización de un
+    administrador o cuenta corriente de empresa.
+  - Facturación electrónica: Factura A, B y C y notas de crédito.
+    Cliente ARCA con WSAA (certificado) y WSFEv1 (CAE), numeración
+    sincronizada con ARCA, QR en el PDF, factura con CAE inmutable.
+    Si ARCA no responde: queda en cola con reintentos y alerta,
+    sin bloquear el check-out.
+  - Opción de alojamiento exento para turistas extranjeros.
+  - Gastos con categoría, medio de pago y comprobante adjunto.
+  - Proveedores e inventario básico (stock por depósito, mínimo,
+    no permite stock negativo salvo que el hotel lo habilite).
+  - Informes económicos: ingresos por día y medio de pago, cierres
+    de caja, cuentas pendientes, libro IVA ventas (Excel y PDF).
+
+
+5. FASE 3 - OPERACIONES
+---------------------------------------------------------------------
+  - Limpieza: tareas automáticas del día (salida = completa,
+    ocupada = repaso), asignación por mucama, vista móvil con
+    iniciar/terminar y checklist, reporte de incidencias con fotos
+    y objetos olvidados. Al terminar, la habitación pasa a "limpia".
+  - Mantenimiento correctivo: incidencias con origen, categoría,
+    prioridad, fotos y estados; las bloqueantes ponen la habitación
+    fuera de servicio hasta el cierre. Repuestos que descuentan stock,
+    costo imputado a habitación y activo.
+  - Mantenimiento preventivo: activos/equipos y planes con
+    frecuencia que generan órdenes automáticas.
+  - Compras: solicitud, orden de compra, recepción (ingresa stock),
+    factura del proveedor y pago; comparación de precios.
+  - Personal: empleados, turnos, licencias y planilla semanal.
+  - Notificaciones: campana interna, email y WhatsApp Business
+    (confirmación, recordatorio, info de ingreso, encuesta).
+    Ningún WhatsApp sale sin consentimiento del huésped.
+
+
+6. FASE 4 - INTELIGENCIA DE NEGOCIOS
+---------------------------------------------------------------------
+  - Dashboard: ocupación, ADR, RevPAR, estadía promedio, antelación,
+    cancelación y no-show, ingresos por canal y tipo, costo de
+    mantenimiento, rentabilidad. Vistas diaria, mensual y anual,
+    comparadas con el mismo período del año anterior (el período en
+    curso se calcula "a la fecha").
+  - Exportación a Excel y PDF, y envío programado por email.
+  - Predicción de demanda: línea base estacional; modelo de ML
+    (gradient boosting) con día de semana, temporada, feriados
+    argentinos y reservas en cartera. Reporta su error (MAPE) y solo
+    se activa si mejora a la línea base.
+  - Tarifas inteligentes dentro de mínimos y máximos del hotel,
+    siempre aprobadas por una persona, mostrando su fundamento.
+  - Mantenimiento predictivo: fallas, tiempo medio entre fallas,
+    ranking de riesgo, alerta de reemplazo.
+  - Alertas: ocupación baja, diferencias de caja, stock bajo,
+    incidencias repetidas.
+  - Consolidado de cadena (varios hoteles).
+
+
+7. FASE 5 - COMERCIALIZACIÓN SAAS
+---------------------------------------------------------------------
+  - Empresas cliente con varios hoteles; usuarios con acceso a más
+    de uno.
+  - Planes Inicial, Profesional y Empresarial (módulos y límites de
+    habitaciones), período de prueba, cobro recurrente, modo solo
+    lectura por falta de pago (los datos no se borran).
+  - Alta autoservicio y asistente de configuración inicial (hotel,
+    habitaciones, tarifas, usuarios) + importación desde Excel.
+  - Panel de Impulso: clientes, plan, estado, métricas de uso y
+    acceso de soporte auditado (requiere motivo).
+  - Mesa de ayuda, base de conocimiento, historial de cambios.
+  - Términos y condiciones y contrato de datos con registro de
+    aceptación.
+  - Ley 25.326: consentimiento del huésped, exportación de sus datos
+    (derecho de acceso) y anonimización (derecho de supresión).
+
+
+8. CALIDAD Y VERIFICACIÓN
+---------------------------------------------------------------------
+  - 77 tests automatizados, todos pasan.
+  - Cobertura de la lógica de negocio: 85 % (la spec pide 70 %).
+  - Se recorrieron todas las pantallas con los 7 roles: sin errores.
+  - Capturas a 360 px de ancho (celular): se ven correctamente.
+  - Backup diario de PostgreSQL con restauración de prueba:
+    probado, restauró las 2.271 reservas.
+  - black y flake8 sin observaciones.
+  - CI en GitHub Actions (formato, lint, migraciones y tests con
+    cobertura mínima).
+
+
+9. CRITERIOS DE ACEPTACIÓN
+---------------------------------------------------------------------
+  CUMPLIDOS Y VERIFICADOS CON TESTS:
+  - Sobre-reserva da error claro por web y por API.
+  - Cambios en reservas y tarifas quedan en auditoría.
+  - Tests de disponibilidad, estados y permisos.
+  - Arqueo de caja cuadra al centavo; cierre a PDF y Excel.
+  - La mucama completa su jornada desde el celular.
+  - Incidencia notificada al técnico en menos de un minuto.
+  - La recepción de una compra actualiza el stock.
+  - Indicadores coinciden con un cálculo manual.
+  - El modelo reporta MAPE y solo se activa si mejora.
+  - Alta de un hotel nuevo sin intervención técnica.
+  - Datos de un cliente nunca visibles para otro.
+  - La suspensión por falta de pago no borra datos.
+
+  CUMPLIDOS SOLO EN MODO SIMULADO:
+  - Factura B con CAE en homologación (falta el certificado real).
+  - Confirmación por WhatsApp (falta la cuenta de Meta).
+
+  NO MEDIDO FORMALMENTE:
+  - Cargar una reserva de dos habitaciones en menos de 2 minutos
+    (el formulario está en una sola pantalla, pero no se cronometró).
+
+
+10. PENDIENTE (depende del usuario o de terceros)
+---------------------------------------------------------------------
+  - ARCA: certificado de homologación, CUIT y punto de venta
+    (configurar ARCA_MODO=homologacion en .env).
+  - WhatsApp: cuenta de WhatsApp Business de Meta y plantillas
+    aprobadas.
+  - Elegir pasarela de pagos de suscripciones.
+  - Elegir channel manager / proveedor autorizado para Booking.com.
+  - Elegir proveedor cloud y montar el entorno de staging.
+  - Elegir el hotel piloto.
+  - Definir qué se reutiliza del proyecto previo de mantenimiento.
+  - Definir precios de los planes (hoy en $ 0).
+  - Revisar con un abogado los términos y el contrato de datos
+    (cargados como borradores).
+  - Validar con un contador las reglas fiscales (tipos de
+    comprobante, exención a turistas extranjeros).
+  - Actualizar cada año los feriados trasladables (cargados hasta
+    2027).
+
+
+11. DECISIONES TOMADAS
+---------------------------------------------------------------------
+  - Multi-hotel por columna hotel_id (propuesta de la spec).
+  - Frontend con plantillas Django + Bootstrap + HTMX (propuesta de
+    la spec).
+  - El dashboard muestra el período en curso "a la fecha" para que
+    la comparación con el año anterior no se distorsione.
+
+
+12. CÓMO USARLO
+---------------------------------------------------------------------
+  Base de datos: contenedor Docker "impulso-pg" (puerto 5433),
+  ya creado y con datos de demostración cargados.
+
+  Levantar el sistema:
+    .venv/bin/python manage.py runserver
+  Abrir: http://localhost:8000
+
+  Usuarios demo (contraseña Impulso2026!):
+    admin, recepcion, limpieza, mantenimiento, compras, dueno,
+    soporte (superadmin de Impulso)
+
+  Datos demo: empresa "Hoteles del Sur S.A." con 2 hoteles
+  (Bariloche, 20 habitaciones; Mendoza, 8), 14 meses de historia,
+  unas 2.270 reservas.
+
+  Otros comandos:
+    .venv/bin/pytest                      -> correr los tests
+    .venv/bin/python manage.py cargar_demo -> cargar datos demo
+    docker compose up --build             -> todo con Docker
+                                             (web, worker, beat,
+                                             PostgreSQL, Redis)
+
+  Instrucciones completas: README.md
+
+
+13. ARCHIVOS PRINCIPALES
+---------------------------------------------------------------------
+  impulso/            configuración, URLs, Celery
+  core/               hoteles, usuarios, roles, auditoría, seguridad
+  habitaciones/       tipos, habitaciones, tarifas, disponibilidad
+  huespedes/          huéspedes y Ley 25.326
+  reservas/           reservas, check-in/out, walk-in, no-show
+  recepcion/          panel, rack, mapa
+  caja/               cuenta del huésped, pagos, cajas, informes
+  facturacion/        facturas, notas de crédito, cliente ARCA
+  inventario/         productos, depósitos, stock
+  compras/            proveedores, gastos, órdenes de compra
+  limpieza/           tareas, checklist, objetos olvidados
+  mantenimiento/      incidencias, activos, preventivos
+  personal/           empleados, turnos, licencias
+  notificaciones/     campana, email, WhatsApp
+  bi/                 indicadores, predicción, tarifas, alertas
+  integraciones/      WhatsApp, channel manager, pasarela
+  saas/               planes, suscripciones, onboarding, soporte
+  templates/, static/ pantallas y estilos
+  tests/              77 tests automatizados
+  scripts/backup.sh   backup diario con prueba de restauración
+  Dockerfile, docker-compose.yml, .github/workflows/ci.yml
+  .env.example        variables de configuración
+  README.md           documentación técnica
+=====================================================================

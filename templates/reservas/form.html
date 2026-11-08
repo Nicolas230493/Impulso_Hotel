@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block titulo %}{% if walk_in %}Walk-in{% elif reserva %}Modificar reserva{% else %}Nueva reserva{% endif %}{% endblock %}
+{% block contenido %}
+<h1 class="h4">{% if walk_in %}<i class="bi bi-person-walking"></i> Walk-in (reserva + check-in){% elif reserva %}Modificar reserva {{ reserva.codigo }}{% else %}Nueva reserva{% endif %}</h1>
+<form method="post" id="form-reserva" novalidate>{% csrf_token %}
+{% if form.non_field_errors %}<div class="alert alert-danger py-2">{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>{% endif %}
+{% if pedir_confirmar_sucia %}<div class="form-check alert alert-warning"><input class="form-check-input" type="checkbox" name="confirmar_sucia" id="cs" value="1"><label class="form-check-label" for="cs">Entiendo que la habitación está sucia y quiero continuar igualmente.</label></div>{% endif %}
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card card-body">
+      <h2 class="h6">Titular</h2>
+      <div class="row g-2">
+        <div class="col-4"><label class="form-label small mb-0">Tipo</label>{{ form.tipo_doc }}</div>
+        <div class="col-8"><label class="form-label small mb-0">Nº documento *</label>
+          <input type="text" name="nro_doc" value="{{ form.nro_doc.value|default:'' }}" class="form-control" id="id_nro_doc" required
+            hx-get="{% url 'buscar_huesped_doc' %}" hx-trigger="change, keyup changed delay:600ms" hx-include="[name=tipo_doc]" hx-target="#huesped-encontrado">
+          {% for e in form.nro_doc.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+        <div class="col-12" id="huesped-encontrado"></div>
+        <div class="col-6"><label class="form-label small mb-0">Nombre *</label>{{ form.nombre }}{% for e in form.nombre.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+        <div class="col-6"><label class="form-label small mb-0">Apellido *</label>{{ form.apellido }}{% for e in form.apellido.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+        <div class="col-6"><label class="form-label small mb-0">Teléfono (WhatsApp)</label>{{ form.telefono }}</div>
+        <div class="col-6"><label class="form-label small mb-0">Email</label>{{ form.email }}</div>
+        <div class="col-12"><label class="form-label small mb-0">Nacionalidad</label>{{ form.nacionalidad }}</div>
+        <div class="col-12 small"><div class="form-check">{{ form.consentimiento_datos }} <label class="form-check-label" for="id_consentimiento_datos">{{ form.consentimiento_datos.label }}</label></div>
+          <div class="form-check">{{ form.consentimiento_whatsapp }} <label class="form-check-label" for="id_consentimiento_whatsapp">{{ form.consentimiento_whatsapp.label }}</label></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card card-body">
+      <h2 class="h6">Estadía</h2>
+      <div class="row g-2" id="fechas" hx-get="{% url 'reserva_disponibilidad' %}" hx-trigger="change from:#fechas input, load" hx-target="#disponibilidad" hx-include="#form-reserva" {% if reserva %}hx-vals='{"reserva": "{{ reserva.pk }}"}'{% endif %}>
+        {% if not walk_in %}<div class="col-6"><label class="form-label small mb-0">Entrada *</label>{{ form.fecha_entrada }}{% for e in form.fecha_entrada.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+        {% else %}<input type="hidden" name="fecha_entrada" value="{% now 'Y-m-d' %}">{% endif %}
+        <div class="col-6"><label class="form-label small mb-0">Salida *</label>{{ form.fecha_salida }}{% for e in form.fecha_salida.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+      </div>
+      {% for hid, cant in seleccion.items %}<input type="hidden" name="hab_{{ hid }}" value="1" class="sel-inicial"><input type="hidden" name="cant_{{ hid }}" value="{{ cant }}" class="sel-inicial">{% endfor %}
+      <div id="disponibilidad" class="mt-2"><div class="text-muted small">Cargando habitaciones disponibles…</div></div>
+      <div class="row g-2 mt-1">
+        <div class="col-6"><label class="form-label small mb-0">Canal</label>{{ form.canal }}</div>
+        <div class="col-6"><label class="form-label small mb-0">Nº en el canal</label>{{ form.referencia_canal }}</div>
+        {% if form.sena %}<div class="col-6"><label class="form-label small mb-0">Seña informada</label>{{ form.sena }}</div>{% endif %}
+        <div class="col-6"><label class="form-label small mb-0">Empresa (cta. cte.)</label>{{ form.cuenta_corriente }}</div>
+        <div class="col-12"><label class="form-label small mb-0">Observaciones</label>{{ form.observaciones }}</div>
+        {% if form.confirmar %}<div class="col-12"><div class="form-check">{{ form.confirmar }} <label class="form-check-label" for="id_confirmar">Reserva confirmada (envía confirmación por WhatsApp si hay consentimiento)</label></div></div>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mt-3 d-flex gap-2"><button class="btn btn-primary btn-lg"><i class="bi bi-check-lg"></i> {% if walk_in %}Registrar ingreso{% else %}Guardar reserva{% endif %}</button>
+<a class="btn btn-outline-secondary btn-lg" href="{% if reserva %}{% url 'reserva_detalle' reserva.pk %}{% else %}{% url 'panel_recepcion' %}{% endif %}">Cancelar</a></div>
+</form>
+{% endblock %}
+{% block scripts %}<script>
+document.body.addEventListener('htmx:afterSwap', function(e){ if(e.target.id==='disponibilidad'){ document.querySelectorAll('.sel-inicial').forEach(function(x){x.remove();}); } });
+</script>{% endblock %}

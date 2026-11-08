@@ -1,0 +1,11 @@
+{% load impulso %}<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><style>
+@page { size: A4; margin: 1.5cm; @bottom-right { content: "Página " counter(page) " de " counter(pages); font-size: 8pt; color: #777; } }
+body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 9pt; color: #222; }
+h1 { font-size: 14pt; color: #0b3d5c; margin: 0 0 4pt; } h2 { font-size: 11pt; color: #0b3d5c; margin: 12pt 0 4pt; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 8pt; } th, td { border-bottom: 0.5pt solid #ccc; padding: 3pt 4pt; text-align: left; }
+th { background: #e8f1f7; } .r { text-align: right; } .muted { color: #777; } .tot td { font-weight: bold; border-top: 1pt solid #333; }
+.encabezado { border-bottom: 2pt solid #0b3d5c; padding-bottom: 6pt; margin-bottom: 10pt; }
+</style></head><body>
+<div class="encabezado"><h1>{% block titulo_pdf %}{% endblock %}</h1><div class="muted">{{ hotel.nombre }} · CUIT {{ hotel.cuit }} · {{ hotel.direccion }} · Generado {% now "d/m/Y H:i" %}</div></div>
+{% block cuerpo %}{% endblock %}
+</body></html>

@@ -1,0 +1,20 @@
+{% extends "pdf_base.html" %}{% load impulso %}
+{% block titulo_pdf %}Resumen gerencial {{ desde|date:"d/m/Y" }} – {{ hasta|date:"d/m/Y" }}{% endblock %}
+{% block cuerpo %}
+<h2>Indicadores</h2>
+<table><tr><th>Indicador</th><th class="r">Período</th><th class="r">Año anterior</th><th class="r">Var. %</th></tr>
+<tr><td>Ocupación %</td><td class="r">{{ k.ocupacion }}</td><td class="r">{{ ant.ocupacion }}</td><td class="r">{{ var.ocupacion|default:"—" }}</td></tr>
+<tr><td>ADR</td><td class="r">{{ k.adr|pesos }}</td><td class="r">{{ ant.adr|pesos }}</td><td class="r">{{ var.adr|default:"—" }}</td></tr>
+<tr><td>RevPAR</td><td class="r">{{ k.revpar|pesos }}</td><td class="r">{{ ant.revpar|pesos }}</td><td class="r">{{ var.revpar|default:"—" }}</td></tr>
+<tr><td>Ingresos alojamiento</td><td class="r">{{ k.ingresos_alojamiento|pesos }}</td><td class="r">{{ ant.ingresos_alojamiento|pesos }}</td><td class="r">{{ var.ingresos_alojamiento|default:"—" }}</td></tr>
+<tr><td>Ingresos totales</td><td class="r">{{ k.ingresos_totales|pesos }}</td><td class="r">{{ ant.ingresos_totales|pesos }}</td><td class="r">{{ var.ingresos_totales|default:"—" }}</td></tr>
+<tr><td>Estadía promedio</td><td class="r">{{ k.estadia_promedio }}</td><td class="r">{{ ant.estadia_promedio }}</td><td class="r">{{ var.estadia_promedio|default:"—" }}</td></tr>
+<tr><td>Antelación promedio (días)</td><td class="r">{{ k.antelacion_promedio }}</td><td class="r">{{ ant.antelacion_promedio }}</td><td class="r">{{ var.antelacion_promedio|default:"—" }}</td></tr>
+<tr><td>Cancelación %</td><td class="r">{{ k.tasa_cancelacion }}</td><td class="r">{{ ant.tasa_cancelacion }}</td><td class="r">{{ var.tasa_cancelacion|default:"—" }}</td></tr>
+<tr><td>No-show %</td><td class="r">{{ k.tasa_no_show }}</td><td class="r">{{ ant.tasa_no_show }}</td><td class="r">{{ var.tasa_no_show|default:"—" }}</td></tr>
+<tr><td>Gastos operativos</td><td class="r">{{ k.gastos_operativos|pesos }}</td><td class="r">{{ ant.gastos_operativos|pesos }}</td><td class="r"></td></tr>
+<tr class="tot"><td>Rentabilidad</td><td class="r">{{ k.rentabilidad|pesos }}</td><td class="r">{{ ant.rentabilidad|pesos }}</td><td class="r">{{ var.rentabilidad|default:"—" }}</td></tr></table>
+<h2>Ingresos por canal</h2><table>{% for n, v in k.ingresos_por_canal.items %}<tr><td>{{ n }}</td><td class="r">{{ v|pesos }}</td></tr>{% endfor %}</table>
+<h2>Ingresos por tipo de habitación</h2><table>{% for n, v in k.ingresos_por_tipo.items %}<tr><td>{{ n }}</td><td class="r">{{ v|pesos }}</td></tr>{% endfor %}</table>
+<h2>Costo de mantenimiento por habitación</h2><table>{% for n, v in k.costo_mant_por_habitacion.items %}<tr><td>{{ n }}</td><td class="r">{{ v|pesos }}</td></tr>{% empty %}<tr><td class="muted">Sin datos</td></tr>{% endfor %}</table>
+{% endblock %}

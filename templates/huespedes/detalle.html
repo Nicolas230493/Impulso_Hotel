@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}{{ h }}{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">{{ h.nombre_completo }}</h1>
+<div class="d-flex gap-1">
+  {% if perms.reservas.add_reserva %}<a class="btn btn-primary btn-sm" href="{% url 'reserva_nueva' %}?huesped={{ h.pk }}"><i class="bi bi-plus-lg"></i> Reservar</a>{% endif %}
+  {% if perms.huespedes.change_huesped %}<a class="btn btn-outline-primary btn-sm" href="{% url 'huesped_editar' h.pk %}"><i class="bi bi-pencil"></i> Editar</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'huesped_exportar' h.pk %}" title="Derecho de acceso"><i class="bi bi-download"></i> Exportar datos</a>{% endif %}
+  {% if perms.huespedes.delete_huesped %}<form method="post" action="{% url 'huesped_suprimir' h.pk %}" onsubmit="return confirm('Se anonimizarán los datos personales de forma irreversible. ¿Continuar?')">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" title="Derecho de supresión"><i class="bi bi-eraser"></i> Suprimir datos</button></form>{% endif %}
+</div></div>
+<div class="row g-3">
+  <div class="col-lg-5"><div class="card card-body small">
+    <dl class="row mb-0">
+      <dt class="col-5">Documento</dt><dd class="col-7">{{ h.get_tipo_doc_display }} {{ h.nro_doc }}</dd>
+      <dt class="col-5">Nacionalidad</dt><dd class="col-7">{{ h.nacionalidad }}</dd>
+      <dt class="col-5">Residencia</dt><dd class="col-7">{{ h.localidad }} {{ h.provincia }} {{ h.pais_residencia }}</dd>
+      <dt class="col-5">Nacimiento</dt><dd class="col-7">{{ h.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</dd>
+      <dt class="col-5">Teléfono</dt><dd class="col-7">{{ h.telefono|default:"—" }}</dd>
+      <dt class="col-5">Email</dt><dd class="col-7">{{ h.email|default:"—" }}</dd>
+      <dt class="col-5">Condición IVA</dt><dd class="col-7">{{ h.get_condicion_iva_display }} {{ h.cuit }}</dd>
+      <dt class="col-5">Consentimiento datos</dt><dd class="col-7">{% if h.consentimiento_datos %}Sí ({{ h.consentimiento_datos_fecha|date:"d/m/Y" }}){% else %}<span class="text-danger">No registrado</span>{% endif %}</dd>
+      <dt class="col-5">WhatsApp</dt><dd class="col-7">{% if h.consentimiento_whatsapp %}Acepta ({{ h.consentimiento_whatsapp_fecha|date:"d/m/Y" }}){% else %}No acepta{% endif %}</dd>
+      <dt class="col-5">Preferencias</dt><dd class="col-7">{{ h.preferencias|linebreaksbr|default:"—" }}</dd>
+      <dt class="col-5">Notas internas</dt><dd class="col-7">{{ h.notas_internas|linebreaksbr|default:"—" }}</dd>
+    </dl></div></div>
+  <div class="col-lg-7"><div class="card"><div class="card-header fw-semibold">Historial de estadías · {{ reservas|length }} reserva/s · {{ noches }} noche/s</div>
+    <div class="tabla-resp"><table class="table table-sm mb-0 small"><thead><tr><th>Código</th><th>Entrada</th><th>Salida</th><th>Total</th><th>Estado</th></tr></thead><tbody>
+    {% for r in reservas %}<tr><td><a href="{% url 'reserva_detalle' r.pk %}">{{ r.codigo }}</a></td><td>{{ r.fecha_entrada|date:"d/m/Y" }}</td><td>{{ r.fecha_salida|date:"d/m/Y" }}</td><td>{{ r.total|pesos }}</td><td>{% badge r.estado r.get_estado_display %}</td></tr>
+    {% empty %}<tr><td colspan="5" class="text-muted">Sin reservas como titular.</td></tr>{% endfor %}
+    {% for e in acomp %}<tr><td><a href="{% url 'reserva_detalle' e.reserva_id %}">{{ e.reserva.codigo }}</a></td><td colspan="4">Acompañante · hab. {{ e.habitacion }} · {{ e.hora_real_entrada|date:"d/m/Y" }}</td></tr>{% endfor %}
+    </tbody></table></div></div></div>
+</div>
+{% endblock %}

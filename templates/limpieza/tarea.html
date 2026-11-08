@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Hab. {{ t.habitacion }}{% endblock %}
+{% block contenido %}
+<a href="{% url 'limpieza_mis_tareas' %}" class="small"><i class="bi bi-arrow-left"></i> Mis tareas</a>
+<h1 class="h4 mt-1">Habitación {{ t.habitacion }} {% badge t.estado t.get_estado_display %}</h1>
+<p class="text-muted">{{ t.get_tipo_display }} · {{ t.habitacion.tipo }} · Estado actual: {{ t.habitacion.get_estado_display }}</p>
+{% if t.estado == "pendiente" %}
+<form method="post" class="d-grid gap-2 mb-3">{% csrf_token %}<button name="accion" value="iniciar" class="btn btn-primary btn-xl"><i class="bi bi-play-fill"></i> Iniciar limpieza</button>
+<button name="accion" value="omitir" class="btn btn-outline-secondary">No molestar / omitir</button></form>
+{% elif t.estado == "en_curso" %}
+<form method="post" class="card card-body mb-3">{% csrf_token %}
+  <h2 class="h6">Checklist</h2>
+  {% for i in checklist %}<div class="form-check py-1"><input class="form-check-input" style="transform:scale(1.4)" type="checkbox" name="ck_{{ i.pk }}" id="ck{{ i.pk }}"><label class="form-check-label ms-2" for="ck{{ i.pk }}">{{ i.descripcion }}</label></div>
+  {% empty %}<p class="small text-muted">Sin checklist configurado para este tipo.</p>{% endfor %}
+  <textarea name="observaciones" class="form-control mt-2" rows="2" placeholder="Observaciones"></textarea>
+  <button name="accion" value="terminar" class="btn btn-success btn-xl mt-2"><i class="bi bi-check2-all"></i> Terminar</button>
+</form>
+{% else %}<div class="alert alert-success">Tarea {{ t.get_estado_display|lower }}{% if t.minutos is not None %} en {{ t.minutos }} minutos{% endif %}.</div>{% endif %}
+<div class="accordion" id="extras">
+  <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#inc"><i class="bi bi-tools me-2"></i> Reportar incidencia</button></h2>
+  <div id="inc" class="accordion-collapse collapse" data-bs-parent="#extras"><form method="post" enctype="multipart/form-data" class="accordion-body">{% csrf_token %}
+    <input name="titulo" class="form-control mb-2" placeholder="¿Qué pasa? (ej. pierde la canilla)" required>
+    <select name="categoria" class="form-select mb-2">{% for v, n in categorias %}<option value="{{ v }}">{{ n }}</option>{% endfor %}</select>
+    <textarea name="descripcion" class="form-control mb-2" rows="2" placeholder="Detalle"></textarea>
+    <input type="file" name="fotos" accept="image/*" capture="environment" multiple class="form-control mb-2">
+    <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="bloqueante" id="bloq"><label for="bloq" class="form-check-label">Impide usar la habitación</label></div>
+    <button name="accion" value="incidencia" class="btn btn-warning w-100">Enviar a mantenimiento</button></form></div></div>
+  <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#obj"><i class="bi bi-bag me-2"></i> Objeto olvidado</button></h2>
+  <div id="obj" class="accordion-collapse collapse" data-bs-parent="#extras"><form method="post" class="accordion-body">{% csrf_token %}
+    <input name="descripcion_objeto" class="form-control mb-2" placeholder="Descripción" required><input name="lugar" class="form-control mb-2" placeholder="Dónde se guardó">
+    <button name="accion" value="objeto" class="btn btn-secondary w-100">Registrar</button></form></div></div>
+</div>
+{% endblock %}

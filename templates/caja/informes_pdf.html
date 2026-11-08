@@ -1,0 +1,17 @@
+{% extends "pdf_base.html" %}{% load impulso %}
+{% block titulo_pdf %}Informe económico {{ desde|date:"d/m/Y" }} – {{ hasta|date:"d/m/Y" }}{% endblock %}
+{% block cuerpo %}
+<h2>Ingresos por día y medio de pago</h2>
+<table><tr><th>Fecha</th>{% for m in medios %}<th class="r">{{ m }}</th>{% endfor %}<th class="r">Total</th></tr>
+{% for f in filas_dia %}<tr><td>{{ f.fecha|date:"d/m" }}</td>{% for v in f.valores %}<td class="r">{{ v|numero:2 }}</td>{% endfor %}<td class="r">{{ f.total|numero:2 }}</td></tr>{% endfor %}
+<tr class="tot"><td>Total</td>{% for v in totales_medio %}<td class="r">{{ v|numero:2 }}</td>{% endfor %}<td class="r">{{ total_general|numero:2 }}</td></tr></table>
+<h2>Cierres de caja</h2>
+<table><tr><th>Cierre</th><th>Usuario</th><th class="r">Esperado</th><th class="r">Contado</th><th class="r">Diferencia</th></tr>
+{% for c in cierres %}<tr><td>{{ c.cierre|date:"d/m/Y H:i" }}</td><td>{{ c.usuario }}</td><td class="r">{{ c.monto_esperado|numero:2 }}</td><td class="r">{{ c.monto_contado|numero:2 }}</td><td class="r">{{ c.diferencia|numero:2 }}</td></tr>{% endfor %}</table>
+<h2>Cuentas pendientes</h2>
+<table><tr><th>Reserva</th><th>Titular</th><th>Empresa</th><th class="r">Saldo</th></tr>{% for p in pendientes %}<tr><td>{{ p.reserva.codigo }}</td><td>{{ p.reserva.titular }}</td><td>{{ p.reserva.cuenta_corriente|default:"" }}</td><td class="r">{{ p.saldo|numero:2 }}</td></tr>{% endfor %}</table>
+<h2>IVA ventas</h2>
+<table><tr><th>Fecha</th><th>Comprobante</th><th>Receptor</th><th class="r">Neto</th><th class="r">IVA</th><th class="r">Exento</th><th class="r">Total</th></tr>
+{% for f in iva_filas %}<tr><td>{{ f.factura.fecha|date:"d/m/Y" }}</td><td>{{ f.factura }}</td><td>{{ f.factura.receptor_nombre }}</td><td class="r">{{ f.neto|numero:2 }}</td><td class="r">{{ f.iva|numero:2 }}</td><td class="r">{{ f.exento|numero:2 }}</td><td class="r">{{ f.total|numero:2 }}</td></tr>{% endfor %}
+<tr class="tot"><td colspan="3">Totales</td><td class="r">{{ iva_totales.neto|numero:2 }}</td><td class="r">{{ iva_totales.iva|numero:2 }}</td><td class="r">{{ iva_totales.exento|numero:2 }}</td><td class="r">{{ iva_totales.total|numero:2 }}</td></tr></table>
+{% endblock %}

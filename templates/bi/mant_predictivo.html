@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Mantenimiento predictivo{% endblock %}
+{% block contenido %}
+<h1 class="h4">Mantenimiento predictivo</h1>
+<p class="small text-muted">Riesgo = fallas del último año + cercanía al tiempo medio entre fallas (MTBF) + costo acumulado frente al umbral de reemplazo.</p>
+<h2 class="h6">Ranking de riesgo por activo</h2>
+<div class="tabla-resp"><table class="table table-sm bg-white small"><thead><tr><th>Activo</th><th>Ubicación</th><th class="text-end">Fallas</th><th class="text-end">Último año</th><th class="text-end">MTBF (días)</th><th class="text-end">Días desde última</th><th class="text-end">Costo acumulado</th><th class="text-end">Umbral</th><th class="text-end">Riesgo</th></tr></thead><tbody>
+{% for f in activos %}<tr class="{% if f.riesgo >= 60 %}table-danger{% elif f.riesgo >= 30 %}table-warning{% endif %}"><td>{{ f.activo.nombre }}</td><td>{{ f.activo.ubicacion }}</td><td class="text-end">{{ f.fallas }}</td><td class="text-end">{{ f.fallas_ultimo_anio }}</td><td class="text-end">{{ f.mtbf_dias|default:"—" }}</td><td class="text-end">{{ f.dias_desde_ultima|default:"—" }}</td><td class="text-end">{{ f.costo_acumulado|pesos }}</td><td class="text-end">{{ f.activo.umbral_reemplazo|pesos }}</td><td class="text-end fw-bold">{{ f.riesgo }}</td></tr>
+{% empty %}<tr><td colspan="9" class="text-muted">Cargue activos para habilitar el análisis.</td></tr>{% endfor %}</tbody></table></div>
+<h2 class="h6 mt-3">Habitaciones con más incidencias</h2>
+<div class="tabla-resp"><table class="table table-sm bg-white small" style="max-width:640px"><thead><tr><th>Habitación</th><th class="text-end">Incidencias</th><th class="text-end">MTBF (días)</th><th class="text-end">Costo</th></tr></thead><tbody>
+{% for f in habitaciones %}{% if f.fallas %}<tr><td>{{ f.habitacion }}</td><td class="text-end">{{ f.fallas }}</td><td class="text-end">{{ f.mtbf_dias|default:"—" }}</td><td class="text-end">{{ f.costo_acumulado|pesos }}</td></tr>{% endif %}{% endfor %}</tbody></table></div>
+{% endblock %}

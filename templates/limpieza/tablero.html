@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Limpieza{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Limpieza · {{ fecha|date:"d/m/Y" }}</h1>
+<div class="d-flex gap-1"><form class="d-flex gap-1"><input type="date" name="fecha" value="{{ fecha|date:'Y-m-d' }}" class="form-control form-control-sm" onchange="this.form.submit()"></form>
+<form method="post" action="{% url 'limpieza_generar' %}">{% csrf_token %}<input type="hidden" name="fecha" value="{{ fecha|date:'Y-m-d' }}"><button class="btn btn-sm btn-primary"><i class="bi bi-magic"></i> Generar tareas del día</button></form>
+<a class="btn btn-sm btn-outline-secondary" href="{% url 'checklist_lista' %}">Checklist</a></div></div>
+<div class="d-flex gap-2 mb-2 small">{% for e, n in resumen.items %}<span class="badge text-bg-{{ e|color }}">{{ e }}: {{ n }}</span>{% endfor %}</div>
+<div class="tabla-resp"><table class="table table-sm bg-white align-middle small"><thead><tr><th>Hab.</th><th>Tipo</th><th>Prioridad</th><th>Estado</th><th>Asignada a</th><th>Tiempo</th></tr></thead><tbody>
+{% for t in tareas %}<tr><td><a href="{% url 'limpieza_tarea' t.pk %}">{{ t.habitacion }}</a></td><td>{{ t.get_tipo_display }}</td><td>{% if t.prioridad == 1 %}<span class="badge text-bg-danger">Llegada hoy</span>{% else %}Normal{% endif %}</td><td>{% badge t.estado t.get_estado_display %}</td>
+<td><form method="post" action="{% url 'limpieza_asignar' t.pk %}">{% csrf_token %}<select name="usuario" class="form-select form-select-sm" onchange="this.form.submit()"><option value="">Sin asignar</option>{% for m in mucamas %}<option value="{{ m.pk }}" {% if m.pk == t.asignada_a_id %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></form></td>
+<td>{% if t.minutos is not None %}{{ t.minutos }} min{% elif t.inicio %}desde {{ t.inicio|time:"H:i" }}{% endif %}</td></tr>
+{% empty %}<tr><td colspan="6" class="text-muted">Sin tareas. Use «Generar tareas del día».</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

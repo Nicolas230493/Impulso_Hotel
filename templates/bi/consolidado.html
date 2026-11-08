@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Consolidado de cadena{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Consolidado de cadena <small class="text-muted fs-6">{{ desde|date:"d/m/Y" }} – {{ hasta|date:"d/m/Y" }}</small></h1>
+<div class="btn-group btn-group-sm"><a class="btn btn-outline-secondary {% if vista == 'mensual' %}active{% endif %}" href="?vista=mensual">Mes</a><a class="btn btn-outline-secondary {% if vista == 'anual' %}active{% endif %}" href="?vista=anual">Año</a></div></div>
+<div class="tabla-resp"><table class="table table-sm bg-white"><thead><tr><th>Hotel</th><th class="text-end">Ocupación</th><th class="text-end">ADR</th><th class="text-end">RevPAR</th><th class="text-end">Ingresos</th><th class="text-end">Rentabilidad</th></tr></thead><tbody>
+{% for f in filas %}<tr><td>{{ f.hotel }}</td><td class="text-end">{{ f.k.ocupacion }} %</td><td class="text-end">{{ f.k.adr|pesos:0 }}</td><td class="text-end">{{ f.k.revpar|pesos:0 }}</td><td class="text-end">{{ f.k.ingresos_totales|pesos:0 }}</td><td class="text-end">{{ f.k.rentabilidad|pesos:0 }}</td></tr>{% endfor %}</tbody>
+<tfoot><tr class="fw-bold"><td>Cadena</td><td class="text-end">{{ total.ocupacion }} %</td><td class="text-end">{{ total.adr|pesos:0 }}</td><td class="text-end">{{ total.revpar|pesos:0 }}</td><td class="text-end">{{ total.ingresos_totales|pesos:0 }}</td><td class="text-end">{{ total.rentabilidad|pesos:0 }}</td></tr></tfoot></table></div>
+{% endblock %}

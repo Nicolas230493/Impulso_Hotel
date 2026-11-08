@@ -1,0 +1,37 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}{{ f }}{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">{{ f }} {% badge f.estado f.get_estado_display %}{% if f.simulada %} <span class="badge text-bg-warning">SIMULADA – sin validez fiscal</span>{% endif %}</h1>
+<div class="d-flex gap-1">
+  {% if f.cae %}<a class="btn btn-sm btn-outline-secondary" href="?formato=pdf" target="_blank"><i class="bi bi-filetype-pdf"></i> PDF</a>{% endif %}
+  {% if perms.facturacion.emitir_factura %}
+    {% if f.estado in "borrador,pendiente,rechazada" %}<form method="post" action="{% url 'factura_emitir' f.pk %}">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="bi bi-send"></i> {% if f.estado == "borrador" %}Emitir{% else %}Reintentar{% endif %}</button></form>{% endif %}
+    {% if f.estado in "borrador,rechazada" %}<form method="post" action="{% url 'factura_anular' f.pk %}" onsubmit="return confirm('¿Anular el borrador?')">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Anular borrador</button></form>{% endif %}
+  {% endif %}
+</div></div>
+{% if f.observaciones_arca %}<div class="alert {% if f.estado == 'autorizada' %}alert-light{% else %}alert-warning{% endif %} py-2 small"><b>ARCA:</b> {{ f.observaciones_arca }}{% if f.estado == "pendiente" %} · Intentos: {{ f.intentos }} · Próximo: {{ f.proximo_intento|date:"d/m H:i" }}{% endif %}</div>{% endif %}
+<div class="row g-3">
+  <div class="col-lg-8"><div class="card card-body">
+    <div class="row small mb-2">
+      <div class="col-md-6"><b>Receptor:</b> {{ f.receptor_nombre }}<br>{{ f.get_receptor_doc_tipo_display }} {{ f.receptor_doc_nro }}<br>{{ f.get_receptor_condicion_iva_display }}<br>{{ f.receptor_domicilio }}</div>
+      <div class="col-md-6"><b>Fecha:</b> {{ f.fecha|date:"d/m/Y" }}<br><b>Período de servicio:</b> {{ f.servicio_desde|date:"d/m/Y" }} – {{ f.servicio_hasta|date:"d/m/Y" }}
+        {% if f.reserva %}<br><b>Reserva:</b> <a href="{% url 'reserva_detalle' f.reserva_id %}">{{ f.reserva.codigo }}</a>{% endif %}
+        {% if f.factura_asociada %}<br><b>Asociada a:</b> <a href="{% url 'factura_detalle' f.factura_asociada_id %}">{{ f.factura_asociada }}</a><br><b>Motivo:</b> {{ f.motivo }}{% endif %}</div>
+    </div>
+    <table class="table table-sm small"><thead><tr><th>Descripción</th><th class="text-end">Cant.</th><th class="text-end">P. unit.</th><th class="text-end">IVA</th><th class="text-end">Total</th></tr></thead><tbody>
+    {% for i in items %}<tr><td>{{ i.descripcion }}</td><td class="text-end">{{ i.cantidad|floatformat:"-2" }}</td><td class="text-end">{{ i.precio_unitario|pesos }}</td><td class="text-end">{% if i.alicuota_iva %}{{ i.alicuota_iva|floatformat:"-1" }} %{% else %}Exento{% endif %}</td><td class="text-end">{{ i.total|pesos }}</td></tr>{% endfor %}</tbody>
+    <tfoot class="small">{% if f.letra != "C" %}<tr><td colspan="4" class="text-end">Neto gravado</td><td class="text-end">{{ f.neto_gravado|pesos }}</td></tr><tr><td colspan="4" class="text-end">IVA</td><td class="text-end">{{ f.iva|pesos }}</td></tr>{% if f.exento %}<tr><td colspan="4" class="text-end">Exento</td><td class="text-end">{{ f.exento|pesos }}</td></tr>{% endif %}{% endif %}
+    <tr><th colspan="4" class="text-end">Total</th><th class="text-end">{{ f.total|pesos }}</th></tr></tfoot></table>
+  </div></div>
+  <div class="col-lg-4">
+    {% if f.cae %}<div class="card card-body small text-center"><b>CAE</b> {{ f.cae }}<br>Vence {{ f.cae_vencimiento|date:"d/m/Y" }}<img class="mx-auto mt-2" src="data:image/png;base64,{{ qr }}" alt="QR ARCA" style="width:140px"></div>{% endif %}
+    {% if f.estado == "autorizada" and not f.es_nota_credito and perms.facturacion.emitir_factura %}
+    <form method="post" action="{% url 'factura_nota_credito' f.pk %}" class="card card-body mt-2">{% csrf_token %}
+      <h2 class="h6">Emitir nota de crédito</h2><p class="small text-muted">Una factura con CAE no se modifica: se corrige con nota de crédito.</p>
+      <label class="form-label small mb-0">Motivo *</label><input name="motivo" class="form-control form-control-sm" required>
+      <label class="form-label small mb-0 mt-1">Importe (vacío = total)</label><input name="importe" type="number" step="0.01" class="form-control form-control-sm">
+      <button class="btn btn-outline-danger btn-sm mt-2">Generar nota de crédito</button></form>{% endif %}
+    {% if notas %}<div class="card card-body mt-2 small"><b>Notas de crédito</b>{% for n in notas %}<div><a href="{% url 'factura_detalle' n.pk %}">{{ n }}</a> {{ n.total|pesos }} {% badge n.estado n.get_estado_display %}</div>{% endfor %}</div>{% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% load impulso %}
+{% block contenido %}
+<div class="d-flex justify-content-between mb-2"><h1 class="h4">Solicitudes de compra</h1><div class="d-flex gap-1"><a class="btn btn-sm btn-outline-secondary" href="{% url 'orden_lista' %}">Órdenes</a>{% if perms.compras.add_solicitudcompra %}<a class="btn btn-primary btn-sm" href="{% url 'solicitud_nueva' %}"><i class="bi bi-plus-lg"></i> Nueva</a>{% endif %}</div></div>
+{% for s in solicitudes %}<div class="card mb-2"><div class="card-body py-2">
+  <div class="d-flex flex-wrap justify-content-between gap-2"><div><b>#{{ s.pk }}</b> · {{ s.fecha|date:"d/m/Y" }} · {{ s.solicitante }} · {{ s.area }} {% badge s.estado s.get_estado_display %}<div class="small text-muted">{{ s.motivo }}</div>
+  <div class="small">{% for i in s.items.all %}{{ i }}{% if not forloop.last %}, {% endif %}{% endfor %}</div></div>
+  {% if perms.compras.change_solicitudcompra %}<div class="d-flex gap-1 align-items-start">
+    {% if s.estado == "pendiente" %}<form method="post" action="{% url 'solicitud_accion' s.pk %}">{% csrf_token %}<button name="accion" value="aprobar" class="btn btn-sm btn-success">Aprobar</button> <button name="accion" value="rechazar" class="btn btn-sm btn-outline-danger">Rechazar</button></form>{% endif %}
+    {% if s.estado == "aprobada" %}<form method="post" action="{% url 'solicitud_accion' s.pk %}" class="d-flex gap-1">{% csrf_token %}<select name="proveedor" class="form-select form-select-sm" required>{% for p in proveedores %}<option value="{{ p.pk }}">{{ p }}</option>{% endfor %}</select><button name="accion" value="orden" class="btn btn-sm btn-primary text-nowrap">Generar OC</button></form>{% endif %}
+  </div>{% endif %}</div></div></div>
+{% empty %}<p class="text-muted">Sin solicitudes.</p>{% endfor %}
+{% endblock %}

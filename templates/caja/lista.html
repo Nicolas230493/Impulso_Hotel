@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load impulso %}
+{% block contenido %}
+<h1 class="h4">Cajas</h1>
+<div class="tabla-resp"><table class="table table-sm bg-white small"><thead><tr><th>Apertura</th><th>Cierre</th><th>Usuario</th><th>Turno</th><th class="text-end">Esperado</th><th class="text-end">Contado</th><th class="text-end">Diferencia</th><th>Estado</th></tr></thead><tbody>
+{% for c in page_obj %}<tr><td><a href="{% url 'caja_detalle' c.pk %}">{{ c.apertura|date:"d/m/Y H:i" }}</a>{% if c.es_general %} <span class="badge text-bg-dark">General</span>{% endif %}</td><td>{{ c.cierre|date:"d/m/Y H:i" }}</td><td>{{ c.usuario }}</td><td>{{ c.turno }}</td>
+<td class="text-end">{{ c.monto_esperado|pesos }}</td><td class="text-end">{{ c.monto_contado|pesos }}</td><td class="text-end {% if c.diferencia %}text-danger fw-bold{% endif %}">{{ c.diferencia|pesos }}</td><td>{% badge c.estado c.get_estado_display %}</td></tr>{% endfor %}
+</tbody></table></div>{% include "_paginacion.html" %}
+{% endblock %}

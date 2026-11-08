@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Gastos{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Gastos</h1>
+<div class="d-flex gap-1"><a class="btn btn-sm btn-outline-secondary" href="{% url 'categoriagasto_lista' %}">Categorías</a>{% if perms.compras.add_gasto %}<a class="btn btn-primary btn-sm" href="{% url 'gasto_nuevo' %}"><i class="bi bi-plus-lg"></i> Registrar gasto</a>{% endif %}</div></div>
+<form class="d-flex gap-1 mb-2"><input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}" class="form-control form-control-sm" style="max-width:170px"><input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}" class="form-control form-control-sm" style="max-width:170px"><button class="btn btn-sm btn-outline-secondary">Ver</button><button class="btn btn-sm btn-outline-secondary" name="formato" value="xlsx"><i class="bi bi-file-earmark-excel"></i></button></form>
+<div class="row g-3"><div class="col-lg-8"><div class="tabla-resp"><table class="table table-sm bg-white small"><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Proveedor</th><th>Medio</th><th class="text-end">Importe</th><th></th></tr></thead><tbody>
+{% for g in page_obj %}<tr><td>{{ g.fecha|date:"d/m/Y" }}</td><td>{{ g.categoria }}</td><td>{{ g.descripcion }}{% if g.nro_comprobante %} <span class="text-muted">({{ g.nro_comprobante }})</span>{% endif %}</td><td>{{ g.proveedor|default:"" }}</td><td>{{ g.get_medio_pago_display }}</td><td class="text-end">{{ g.moneda }} {{ g.importe|numero:2 }}</td><td>{% if g.comprobante %}<a href="{{ g.comprobante.url }}" target="_blank" title="Comprobante"><i class="bi bi-paperclip"></i></a>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="7" class="text-muted">Sin gastos en el período.</td></tr>{% endfor %}</tbody></table></div>{% include "_paginacion.html" %}</div>
+<div class="col-lg-4"><div class="card card-body small"><h2 class="h6">Por categoría</h2>{% for c in por_categoria %}<div class="d-flex justify-content-between"><span>{{ c.categoria__nombre }}</span><span>{{ c.total|pesos }}</span></div>{% endfor %}<hr><div class="d-flex justify-content-between fw-bold"><span>Total</span><span>{{ total|pesos }}</span></div></div></div></div>
+{% endblock %}

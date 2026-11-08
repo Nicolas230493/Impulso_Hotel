@@ -1,0 +1,5 @@
+<div class="mx-auto" style="max-width:420px">
+  <h1 class="h5">Recuperar o cambiar contraseña</h1>
+  {% if validlink is False %}<div class="alert alert-danger">El enlace no es válido o ya fue usado.</div>{% else %}
+  <form method="post" class="card card-body">{% csrf_token %}{% include "_form_campos.html" %}<button class="btn btn-primary mt-2">Continuar</button></form>{% endif %}
+</div>

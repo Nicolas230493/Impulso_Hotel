@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% load impulso %}
+{% block contenido %}
+<h1 class="h4">{{ e }} {% if sus %}{% badge sus.estado sus.get_estado_display %}{% endif %}</h1>
+<p class="small text-muted">CUIT {{ e.cuit }} · {{ e.email }} · {{ e.telefono }} · Alta {{ e.creado_en|date:"d/m/Y" }}</p>
+<div class="row g-3"><div class="col-lg-6">
+{% if sus %}<form method="post" class="card card-body mb-2">{% csrf_token %}<h2 class="h6">Suscripción</h2>
+<div class="d-flex gap-1 mb-2"><select name="plan" class="form-select form-select-sm">{% for p in planes %}<option value="{{ p.pk }}" {% if p == sus.plan %}selected{% endif %}>{{ p }}</option>{% endfor %}</select><button name="accion" value="plan" class="btn btn-sm btn-outline-primary text-nowrap">Cambiar plan</button></div>
+<div class="d-flex gap-1"><button name="accion" value="suspender" class="btn btn-sm btn-outline-danger">Suspender (solo lectura)</button><button name="accion" value="reactivar" class="btn btn-sm btn-outline-success">Reactivar</button></div></form>{% endif %}
+<div class="card card-body small"><b>Uso</b> {{ uso.hoteles }} hoteles · {{ uso.habitaciones }} habitaciones · {{ uso.usuarios }} usuarios · {{ uso.reservas_30d }} reservas (30 d)</div></div>
+<div class="col-lg-6"><div class="card"><div class="card-header small fw-semibold">Hoteles · acceso de soporte auditado</div><ul class="list-group list-group-flush">
+{% for h in hoteles %}<li class="list-group-item"><b>{{ h }}</b><form method="post" action="{% url 'saas_soporte_acceder' h.pk %}" class="d-flex gap-1 mt-1">{% csrf_token %}<input name="motivo" class="form-control form-control-sm" placeholder="Motivo (ticket #, pedido del cliente)" required><button class="btn btn-sm btn-dark text-nowrap">Acceder</button></form></li>{% endfor %}</ul></div>
+<div class="card mt-2"><div class="card-header small fw-semibold">Cobros</div><ul class="list-group list-group-flush small">{% for c in cobros %}<li class="list-group-item">{{ c.fecha|date:"d/m/Y" }} {{ c.importe|pesos }} {% if c.aprobado %}aprobado{% else %}rechazado{% endif %} {{ c.detalle }}</li>{% endfor %}</ul></div></div></div>
+{% endblock %}

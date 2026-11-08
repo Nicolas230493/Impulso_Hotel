@@ -1,0 +1,1 @@
+{% if doc %}<h1 class="h4">{{ doc.get_tipo_display }} <small class="text-muted">v{{ doc.version }} · {{ doc.publicado_en|date:"d/m/Y" }}</small></h1><div class="card card-body">{{ doc.contenido|linebreaks }}</div>{% else %}<p>Documento no disponible.</p>{% endif %}

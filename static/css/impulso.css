@@ -1,0 +1,33 @@
+:root { --impulso: #0b3d5c; --impulso-claro: #e8f1f7; }
+.bg-impulso { background: var(--impulso); }
+.sidebar { width: 240px; flex-shrink: 0; min-height: calc(100vh - 56px); }
+@media (min-width: 992px) { .sidebar { position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; } }
+.menu .nav-link { color: #333; padding: .35rem 1rem; font-size: .92rem; }
+.menu .nav-link:hover { background: var(--impulso-claro); }
+.menu .nav-link i { width: 1.4rem; display: inline-block; }
+.menu-titulo { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: #888; padding: .8rem 1rem .2rem; }
+.contenido { min-width: 0; }
+.tarjeta-kpi .valor { font-size: 1.6rem; font-weight: 600; }
+.tarjeta-kpi .etiqueta { font-size: .8rem; color: #666; }
+/* Mapa de habitaciones */
+.hab { border-radius: .5rem; padding: .5rem; min-height: 78px; color: #fff; text-decoration: none; display: block; }
+.hab .num { font-size: 1.25rem; font-weight: 700; }
+.hab .det { font-size: .72rem; opacity: .95; }
+.hab-libre { background: #198754; } .hab-reservada { background: #0dcaf0; color: #000; }
+.hab-ocupada { background: #dc3545; } .hab-sucia { background: #ffc107; color: #000; }
+.hab-limpia { background: #0d6efd; } .hab-fuera_servicio { background: #343a40; }
+/* Rack */
+.rack { font-size: .78rem; }
+.rack th, .rack td { white-space: nowrap; padding: .2rem .3rem !important; }
+.rack td.libre a { display: block; color: transparent; }
+.rack td.libre:hover { background: var(--impulso-claro); }
+.rack td.libre:hover a { color: #0d6efd; }
+.rack td.ocup { color: #fff; font-weight: 500; overflow: hidden; max-width: 1px; text-overflow: ellipsis; }
+.rack td.bloq { background: repeating-linear-gradient(45deg, #ddd, #ddd 4px, #f5f5f5 4px, #f5f5f5 8px); }
+.rack th.finde { background: #f1f1f1; }
+.rack th.hoy, .rack td.hoy { border-left: 2px solid #dc3545 !important; }
+.estado-pendiente { background: #fd7e14; } .estado-confirmada { background: #0d6efd; }
+.estado-en_curso { background: #198754; } .estado-finalizada { background: #6c757d; }
+.tabla-resp { overflow-x: auto; }
+.btn-xl { padding: 1rem; font-size: 1.15rem; }
+@media print { .sidebar, nav.navbar, .no-print { display: none !important; } }

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1 class="h4">{{ titulo }}</h1>
+<form method="post" class="card card-body" style="max-width:900px">{% csrf_token %}
+  <div class="row g-2 mb-2">
+  {% if solicitud %}
+    <div class="col-md-4"><label class="form-label small mb-0">Área</label><input name="area" class="form-control"></div>
+    <div class="col-md-8"><label class="form-label small mb-0">Motivo</label><input name="motivo" class="form-control"></div>
+  {% else %}
+    <div class="col-md-6"><label class="form-label small mb-0">Proveedor *</label><select name="proveedor" class="form-select" required><option value="">—</option>{% for p in proveedores %}<option value="{{ p.pk }}">{{ p }}</option>{% endfor %}</select></div>
+    <div class="col-md-6"><label class="form-label small mb-0">Depósito de recepción *</label><select name="deposito" class="form-select" required>{% for d in depositos %}<option value="{{ d.pk }}">{{ d }}</option>{% endfor %}</select></div>
+    <div class="col-12"><label class="form-label small mb-0">Observaciones</label><input name="observaciones" class="form-control"></div>
+  {% endif %}
+  </div>
+  <table class="table table-sm"><thead><tr><th>Producto</th><th style="width:120px">Cantidad</th>{% if con_precio %}<th style="width:150px">Precio unit.</th>{% endif %}</tr></thead><tbody>
+  {% for i in filas %}<tr><td><select name="prod_{{ i }}" class="form-select form-select-sm"><option value="">—</option>{% for p in productos %}<option value="{{ p.pk }}">{{ p }} ({{ p.unidad }})</option>{% endfor %}</select></td>
+  <td><input name="cant_{{ i }}" type="number" step="0.01" min="0" class="form-control form-control-sm"></td>{% if con_precio %}<td><input name="precio_{{ i }}" type="number" step="0.01" min="0" class="form-control form-control-sm" placeholder="último costo"></td>{% endif %}</tr>{% endfor %}
+  </tbody></table>
+  <div><button class="btn btn-primary">Guardar</button></div>
+</form>
+{% endblock %}

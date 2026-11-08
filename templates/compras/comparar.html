@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load impulso %}
+{% block contenido %}
+<h1 class="h4">Comparación de precios por proveedor</h1>
+<form class="mb-2"><select name="producto" class="form-select" style="max-width:420px" onchange="this.form.submit()"><option value="">Elija un producto…</option>{% for p in productos %}<option value="{{ p.pk }}" {% if p == producto %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></form>
+{% if producto %}<table class="table table-sm bg-white small" style="max-width:820px"><thead><tr><th>Proveedor</th><th class="text-end">Último</th><th class="text-end">Mínimo</th><th class="text-end">Máximo</th><th class="text-end">Promedio</th><th>Compras</th><th>Última</th></tr></thead><tbody>
+{% for f in filas %}<tr class="{% if forloop.first %}table-success{% endif %}"><td>{{ f.orden__proveedor__razon_social }}</td><td class="text-end">{{ f.ultimo|pesos }}</td><td class="text-end">{{ f.minimo|pesos }}</td><td class="text-end">{{ f.maximo|pesos }}</td><td class="text-end">{{ f.promedio|pesos }}</td><td>{{ f.compras }}</td><td>{{ f.ultima|date:"d/m/Y" }}</td></tr>
+{% empty %}<tr><td colspan="7" class="text-muted">Sin compras registradas de este producto.</td></tr>{% endfor %}</tbody></table>{% endif %}
+{% endblock %}

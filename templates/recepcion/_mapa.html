@@ -1,0 +1,34 @@
+{% for piso, habs in pisos %}
+<h2 class="h6 mt-3 text-muted">Piso {{ piso }}</h2>
+<div class="row g-2">
+  {% for h in habs %}
+  <div class="col-4 col-sm-3 col-md-2 col-xl-1" style="min-width:110px">
+    <div class="dropdown">
+      <a href="#" class="hab hab-{{ h.estado_visual }}" data-bs-toggle="dropdown" aria-label="Habitación {{ h.numero }}">
+        <div class="num">{{ h.numero }}</div>
+        <div class="det">{{ h.tipo.nombre|truncatechars:14 }}</div>
+        <div class="det">{% if h.detalle_actual %}{{ h.detalle_actual.reserva.titular.apellido|truncatechars:12 }}{% else %}{{ h.get_estado_display }}{% endif %}</div>
+      </a>
+      <ul class="dropdown-menu">
+        {% if h.detalle_actual %}<li><a class="dropdown-item" href="{% url 'reserva_detalle' h.detalle_actual.reserva_id %}">Ver reserva</a></li>{% endif %}
+        {% if h.estado == "sucia" and perms.habitaciones.marcar_limpia %}
+        <li><form method="post" action="{% url 'habitacion_cambiar_estado' h.pk %}">{% csrf_token %}<input type="hidden" name="estado" value="limpia"><button class="dropdown-item">Marcar limpia</button></form></li>{% endif %}
+        {% if h.estado == "limpia" and perms.habitaciones.change_habitacion %}
+        <li><form method="post" action="{% url 'habitacion_cambiar_estado' h.pk %}">{% csrf_token %}<input type="hidden" name="estado" value="libre"><button class="dropdown-item">Marcar libre (inspeccionada)</button></form></li>{% endif %}
+        {% if perms.habitaciones.cambiar_fuera_servicio %}
+          {% if h.estado == "fuera_servicio" %}
+          <li><form method="post" action="{% url 'habitacion_cambiar_estado' h.pk %}">{% csrf_token %}<input type="hidden" name="estado" value="sucia"><button class="dropdown-item">Liberar fuera de servicio</button></form></li>
+          {% elif h.estado != "ocupada" %}
+          <li><form method="post" action="{% url 'habitacion_cambiar_estado' h.pk %}" onsubmit="this.motivo.value=prompt('Motivo')||'';return this.motivo.value!=''">{% csrf_token %}<input type="hidden" name="estado" value="fuera_servicio"><input type="hidden" name="motivo"><button class="dropdown-item">Poner fuera de servicio</button></form></li>
+          {% endif %}
+        {% endif %}
+        {% if perms.mantenimiento.add_incidencia %}<li><a class="dropdown-item" href="{% url 'incidencia_nueva' %}?habitacion={{ h.pk }}">Reportar incidencia</a></li>{% endif %}
+        {% if h.estado_visual in "libre,limpia" and perms.reservas.add_reserva %}<li><a class="dropdown-item" href="{% url 'walk_in' %}?habitacion={{ h.pk }}">Walk-in</a></li>{% endif %}
+      </ul>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% empty %}<div class="alert alert-info">No hay habitaciones cargadas. <a href="{% url 'habitacion_lista' %}">Cargar habitaciones</a></div>
+{% endfor %}
+<div class="small text-muted mt-2">Actualizado {{ actualizado|date:"H:i:s" }}</div>

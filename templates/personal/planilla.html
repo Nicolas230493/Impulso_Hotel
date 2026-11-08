@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block titulo %}Turnos{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Planilla semanal</h1>
+<div class="d-flex gap-1"><a class="btn btn-sm btn-outline-secondary" href="?semana={{ anterior|date:'Y-m-d' }}">‹</a><a class="btn btn-sm btn-outline-secondary" href="?semana={{ siguiente|date:'Y-m-d' }}">›</a>
+<a class="btn btn-sm btn-outline-secondary" href="{% url 'empleado_lista' %}">Empleados</a><a class="btn btn-sm btn-outline-secondary" href="{% url 'licencia_lista' %}">Licencias</a><a class="btn btn-sm btn-primary" href="{% url 'turno_nuevo' %}">Nuevo turno</a></div></div>
+<div class="tabla-resp"><table class="table table-bordered table-sm bg-white small"><thead><tr><th>Empleado</th>{% for d in dias %}<th class="text-center">{{ d|date:"D d/m" }}</th>{% endfor %}</tr></thead><tbody>
+{% for f in filas %}<tr><th>{{ f.empleado }}<div class="fw-normal text-muted">{{ f.empleado.puesto }}</div></th>{% for c in f.celdas %}<td class="text-center {% if c.licencia %}table-warning{% endif %}">
+{% if c.licencia %}{{ c.licencia.get_tipo_display }}{% endif %}{% for t in c.turnos %}<div>{{ t.hora_inicio|time:"H:i" }}–{{ t.hora_fin|time:"H:i" }}</div>{% endfor %}</td>{% endfor %}</tr>
+{% empty %}<tr><td colspan="8" class="text-muted">Sin empleados cargados.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

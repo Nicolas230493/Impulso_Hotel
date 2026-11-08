@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Reservas{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-2"><h1 class="h4 mb-0">Reservas</h1>
+{% if perms.reservas.add_reserva %}<a class="btn btn-primary btn-sm" href="{% url 'reserva_nueva' %}"><i class="bi bi-plus-lg"></i> Nueva</a>{% endif %}</div>
+<form class="row g-1 mb-2" method="get">
+  <div class="col-12 col-md-4"><input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Código, apellido, documento, Nº de canal"></div>
+  <div class="col-6 col-md-2"><select class="form-select form-select-sm" name="estado"><option value="">Todos los estados</option>{% for v, n in estados %}<option value="{{ v }}" {% if v == estado %}selected{% endif %}>{{ n }}</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-2"><input type="date" class="form-control form-control-sm" name="desde" value="{{ desde|date:'Y-m-d' }}"></div>
+  <div class="col-6 col-md-2"><input type="date" class="form-control form-control-sm" name="hasta" value="{{ hasta|date:'Y-m-d' }}"></div>
+  <div class="col-6 col-md-2"><button class="btn btn-sm btn-outline-secondary w-100"><i class="bi bi-search"></i> Buscar</button></div>
+</form>
+<div class="tabla-resp"><table class="table table-sm table-hover bg-white align-middle">
+<thead><tr><th>Código</th><th>Titular</th><th>Entrada</th><th>Salida</th><th>Canal</th><th class="text-end">Total</th><th>Estado</th></tr></thead><tbody>
+{% for r in page_obj %}<tr onclick="location='{% url 'reserva_detalle' r.pk %}'" style="cursor:pointer">
+<td><a href="{% url 'reserva_detalle' r.pk %}">{{ r.codigo }}</a></td><td>{{ r.titular }}</td><td>{{ r.fecha_entrada|date:"d/m/Y" }}</td><td>{{ r.fecha_salida|date:"d/m/Y" }}</td>
+<td>{{ r.get_canal_display }}</td><td class="text-end">{{ r.total|pesos }}</td><td>{% badge r.estado r.get_estado_display %}</td></tr>
+{% empty %}<tr><td colspan="7" class="text-muted text-center py-3">Sin reservas.</td></tr>{% endfor %}
+</tbody></table></div>
+{% include "_paginacion.html" %}
+{% endblock %}

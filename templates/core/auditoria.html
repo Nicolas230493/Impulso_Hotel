@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1 class="h4">Auditoría</h1>
+<form class="row g-2 mb-2" method="get"><div class="col-auto"><input class="form-control form-control-sm" name="modelo" value="{{ modelo }}" placeholder="Modelo (ej. reservas.Reserva)"></div>
+<div class="col-auto"><input class="form-control form-control-sm" name="objeto" value="{{ objeto }}" placeholder="ID"></div><div class="col-auto"><button class="btn btn-sm btn-outline-secondary">Filtrar</button></div></form>
+<div class="tabla-resp"><table class="table table-sm bg-white small">
+<thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Objeto</th><th>Cambios</th><th>IP</th></tr></thead><tbody>
+{% for a in pagina %}<tr><td class="text-nowrap">{{ a.fecha|date:"d/m/Y H:i:s" }}</td><td>{{ a.usuario|default:"sistema" }}</td><td>{{ a.get_accion_display }}</td>
+<td>{{ a.modelo }} #{{ a.objeto_id }}<div class="text-muted">{{ a.descripcion }}</div></td>
+<td>{% if a.antes %}<details><summary>ver</summary><div><b>Antes:</b> <code>{{ a.antes }}</code></div><div><b>Después:</b> <code>{{ a.despues }}</code></div></details>{% endif %}</td><td>{{ a.ip|default:"" }}</td></tr>{% endfor %}
+</tbody></table></div>
+{% with page_obj=pagina %}{% include "_paginacion.html" %}{% endwith %}
+{% endblock %}

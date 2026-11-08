@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Clientes Impulso{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Clientes</h1><a href="{% url 'soporte_lista' %}" class="btn btn-sm btn-outline-secondary">Mesa de ayuda ({{ tickets_abiertos }} abiertos)</a></div>
+<div class="d-flex flex-wrap gap-2 mb-2 small">{% for e, n in resumen.items %}<span class="badge text-bg-{{ e|color }}">{{ e }}: {{ n }}</span>{% endfor %}</div>
+<form class="mb-2"><input name="q" value="{{ q }}" class="form-control form-control-sm" style="max-width:320px" placeholder="Razón social o CUIT"></form>
+<div class="tabla-resp"><table class="table table-sm bg-white small"><thead><tr><th>Empresa</th><th>Plan</th><th>Estado</th><th class="text-end">Hoteles</th><th class="text-end">Habitaciones</th><th class="text-end">Usuarios</th><th class="text-end">Reservas 30 d</th><th>Último acceso</th></tr></thead><tbody>
+{% for f in filas %}<tr><td><a href="{% url 'saas_empresa' f.e.pk %}">{{ f.e }}</a><div class="text-muted">{{ f.e.cuit }}</div></td><td>{{ f.sus.plan|default:"—" }}</td><td>{% if f.sus %}{% badge f.sus.estado f.sus.get_estado_display %}{% endif %}</td>
+<td class="text-end">{{ f.uso.hoteles }}</td><td class="text-end">{{ f.uso.habitaciones }}</td><td class="text-end">{{ f.uso.usuarios }}</td><td class="text-end">{{ f.uso.reservas_30d }}</td><td>{{ f.uso.ultimo_acceso|date:"d/m/Y H:i"|default:"—" }}</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

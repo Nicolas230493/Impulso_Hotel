@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Órdenes de trabajo{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Órdenes de trabajo</h1>
+<div class="d-flex gap-1"><a class="btn btn-sm btn-outline-secondary" href="{% url 'activo_lista' %}">Activos</a><a class="btn btn-sm btn-outline-secondary" href="{% url 'plan_lista' %}">Planes preventivos</a>
+{% if perms.mantenimiento.add_mantenimiento %}<form method="post" action="{% url 'orden_preventiva_generar' %}">{% csrf_token %}<button class="btn btn-sm btn-primary">Generar preventivas vencidas</button></form>{% endif %}</div></div>
+<h2 class="h6">Pendientes</h2>
+{% for o in pendientes %}<div class="card mb-2"><div class="card-body py-2"><div class="d-flex justify-content-between"><div><b>{{ o }}</b> · {{ o.activo_relacionado|default:"" }} · programada {{ o.fecha_programada|date:"d/m/Y" }} · {{ o.tecnico|default:"sin técnico" }}</div>
+{% if perms.mantenimiento.change_mantenimiento %}<button class="btn btn-sm btn-outline-success" data-bs-toggle="collapse" data-bs-target="#o{{ o.pk }}">Registrar</button>{% endif %}</div>
+<div class="collapse mt-2" id="o{{ o.pk }}"><form method="post" action="{% url 'orden_preventiva_registrar' o.pk %}">{% csrf_token %}{% include "mantenimiento/_trabajo_form.html" %}<button class="btn btn-sm btn-success mt-2">Marcar realizada</button></form></div></div></div>
+{% empty %}<p class="text-muted small">Sin órdenes pendientes.</p>{% endfor %}
+<h2 class="h6 mt-3">Realizadas recientemente</h2>
+<div class="tabla-resp"><table class="table table-sm bg-white small"><thead><tr><th>Fecha</th><th>Orden</th><th>Ubicación</th><th>Técnico</th><th class="text-end">Costo</th></tr></thead><tbody>
+{% for o in realizados %}<tr><td>{{ o.fecha_realizado|date:"d/m/Y" }}</td><td>{{ o }}</td><td>{% if o.habitacion %}Hab. {{ o.habitacion }}{% endif %} {{ o.activo_relacionado|default:"" }}</td><td>{{ o.tecnico|default:"" }}</td><td class="text-end">{{ o.costo_total|pesos }}</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

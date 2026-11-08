@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+  <h1 class="h4 mb-0">{{ titulo }}</h1>
+  <div class="d-flex gap-2">
+    {% block acciones_extra %}{% endblock %}
+    {% if puede_agregar %}<a href="{{ url_nuevo }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Nuevo</a>{% endif %}
+  </div>
+</div>
+{% if crud.buscar_en %}
+<form class="mb-2" method="get"><div class="input-group input-group-sm" style="max-width:420px">
+  <input class="form-control" name="q" value="{{ q }}" placeholder="Buscar…"><button class="btn btn-outline-secondary"><i class="bi bi-search"></i></button></div></form>
+{% endif %}
+<div class="tabla-resp"><table class="table table-sm table-hover align-middle bg-white">
+  <thead><tr>{% for c in crud.columnas %}<th>{{ c.etiqueta }}</th>{% endfor %}<th></th></tr></thead>
+  <tbody>
+  {% for f in filas %}
+  <tr>{% for celda in f.celdas %}<td>{{ celda }}</td>{% endfor %}
+    <td class="text-end text-nowrap">
+      {% for a in crud.acciones_extra %}<a class="btn btn-sm btn-outline-secondary" href="{% url a.0 f.obj.pk %}">{{ a.1 }}</a>{% endfor %}
+      {% if puede_editar %}<a class="btn btn-sm btn-outline-primary" href="{{ f.url_editar }}" aria-label="Editar"><i class="bi bi-pencil"></i></a>{% endif %}
+      {% if puede_borrar %}<form method="post" action="{{ f.url_borrar }}" class="d-inline" onsubmit="return confirm('¿Dar de baja?')">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" aria-label="Dar de baja"><i class="bi bi-trash"></i></button></form>{% endif %}
+    </td></tr>
+  {% empty %}<tr><td colspan="99" class="text-muted text-center py-4">Sin registros.</td></tr>{% endfor %}
+  </tbody></table></div>
+{% include "_paginacion.html" %}
+{% endblock %}

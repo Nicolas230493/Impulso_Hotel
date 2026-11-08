@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+media/
+staticfiles/
+.coverage
+htmlcov/
+.pytest_cache/
+*.crt
+*.key

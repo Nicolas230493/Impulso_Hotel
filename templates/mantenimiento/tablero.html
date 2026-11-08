@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Incidencias{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Incidencias</h1>
+<div class="d-flex gap-1"><div class="btn-group btn-group-sm"><a class="btn btn-outline-secondary {% if ver == 'abiertas' %}active{% endif %}" href="?ver=abiertas">Abiertas</a><a class="btn btn-outline-secondary {% if ver == 'mias' %}active{% endif %}" href="?ver=mias">Mías</a><a class="btn btn-outline-secondary {% if ver == 'todas' %}active{% endif %}" href="?ver=todas">Todas</a></div>
+{% if perms.mantenimiento.add_incidencia %}<a class="btn btn-primary btn-sm" href="{% url 'incidencia_nueva' %}"><i class="bi bi-plus-lg"></i> Reportar</a>{% endif %}</div></div>
+<div class="row g-2" hx-get="" hx-trigger="every 30s" hx-select=".row.g-2" hx-swap="outerHTML">
+{% for estado, nombre, items in columnas %}
+<div class="col-md"><div class="card"><div class="card-header small fw-semibold">{{ nombre }} ({{ items|length }})</div>
+<div class="list-group list-group-flush">{% for i in items %}
+<a href="{% url 'incidencia_detalle' i.pk %}" class="list-group-item list-group-item-action small">
+  <div class="d-flex justify-content-between"><b>#{{ i.pk }} {{ i.titulo|truncatechars:40 }}</b>{% if i.prioridad <= 2 %}<span class="badge text-bg-{% if i.prioridad == 1 %}danger{% else %}warning{% endif %}">{{ i.get_prioridad_display }}</span>{% endif %}</div>
+  <div class="text-muted">{% if i.habitacion %}Hab. {{ i.habitacion }}{% elif i.activo_relacionado %}{{ i.activo_relacionado }}{% endif %} · {{ i.get_categoria_display }}{% if i.bloqueante %} · <span class="text-danger">bloqueante</span>{% endif %}</div>
+  <div class="text-muted">{{ i.reportada_en|timesince }} · {{ i.asignada_a|default:"sin asignar" }}</div></a>
+{% empty %}<div class="list-group-item small text-muted">—</div>{% endfor %}</div></div></div>
+{% endfor %}</div>
+{% endblock %}

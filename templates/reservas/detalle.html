@@ -1,0 +1,100 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Reserva {{ r.codigo }}{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+  <div><h1 class="h4 mb-0">Reserva {{ r.codigo }} {% badge r.estado r.get_estado_display %}</h1>
+  <div class="text-muted small">Creada {{ r.creado_en|date:"d/m/Y H:i" }} por {{ r.creado_por|default:"sistema" }} · {{ r.get_canal_display }}{% if r.referencia_canal %} ({{ r.referencia_canal }}){% endif %}</div></div>
+  <div class="d-flex flex-wrap gap-1">
+    {% if r.estado == "pendiente" and perms.reservas.change_reserva %}<form method="post" action="{% url 'reserva_confirmar' r.pk %}">{% csrf_token %}<button class="btn btn-primary btn-sm"><i class="bi bi-check2-circle"></i> Confirmar</button></form>{% endif %}
+    {% if r.estado in "pendiente,confirmada" and perms.reservas.change_reserva %}<a class="btn btn-outline-primary btn-sm" href="{% url 'reserva_editar' r.pk %}"><i class="bi bi-pencil"></i> Modificar</a>{% endif %}
+    {% if r.estado in "confirmada,en_curso" and perms.reservas.checkin_reserva %}{% if r.estado == "confirmada" or r.detalles.count > r.estadias.count %}<a class="btn btn-success btn-sm" href="{% url 'reserva_checkin' r.pk %}"><i class="bi bi-box-arrow-in-right"></i> Check-in</a>{% endif %}{% endif %}
+    {% if r.estado in "pendiente,confirmada" and perms.reservas.cancelar_reserva %}<button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#cancelar"><i class="bi bi-x-circle"></i> Cancelar</button>{% endif %}
+  </div>
+</div>
+<div class="collapse mb-2" id="cancelar"><form method="post" action="{% url 'reserva_cancelar' r.pk %}" class="card card-body">{% csrf_token %}
+  <label class="form-label">Motivo de la cancelación *</label>{{ cancelar_form.motivo }}<button class="btn btn-danger btn-sm mt-2 align-self-start">Confirmar cancelación</button></form></div>
+{% if r.estado == "cancelada" %}<div class="alert alert-dark py-2">Cancelada el {{ r.cancelada_en|date:"d/m/Y H:i" }} por {{ r.cancelada_por|default:"sistema" }}. Motivo: {{ r.motivo_cancelacion }}</div>{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6">Titular</h2>
+      <p class="mb-1"><a href="{% url 'huesped_detalle' r.titular.pk %}" class="fw-semibold">{{ r.titular }}</a> · {{ r.titular.get_tipo_doc_display }} {{ r.titular.nro_doc }}</p>
+      <p class="small text-muted mb-1">{{ r.titular.telefono }} {{ r.titular.email }}{% if not r.titular.consentimiento_whatsapp %} · <span class="text-warning">sin consentimiento WhatsApp</span>{% endif %}</p>
+      {% if r.cuenta_corriente %}<p class="small mb-1"><i class="bi bi-briefcase"></i> Paga: {{ r.cuenta_corriente }}</p>{% endif %}
+      <hr class="my-2">
+      <div class="row small"><div class="col-6"><b>Entrada</b><br>{{ r.fecha_entrada|date:"D d/m/Y" }}</div><div class="col-6"><b>Salida</b><br>{{ r.fecha_salida|date:"D d/m/Y" }}</div></div>
+      <p class="small mt-2 mb-1">{{ r.noches }} noche/s · Total {{ r.total|pesos }} · Seña informada {{ r.sena|pesos }}</p>
+      {% if r.observaciones %}<p class="small bg-light p-2 mb-0">{{ r.observaciones|linebreaksbr }}</p>{% endif %}
+    </div></div>
+    <div class="card mb-3"><div class="card-header fw-semibold">Habitaciones</div>
+      <ul class="list-group list-group-flush">{% for d in detalles %}
+        <li class="list-group-item small {% if not d.vigente or not d.activo %}text-decoration-line-through text-muted{% endif %}">Hab. <b>{{ d.habitacion }}</b> · {{ d.tipo_habitacion }} · {{ d.cantidad_huespedes }} pers. · {{ d.tarifa_aplicada|pesos }}/noche · {{ d.subtotal|pesos }}</li>{% endfor %}
+      </ul>
+      {% if estadias %}<div class="card-body small border-top">{% for e in estadias %}
+        <div><b>Hab. {{ e.habitacion }}</b>: ingreso {{ e.hora_real_entrada|date:"d/m H:i" }}{% if e.hora_real_salida %} · salida {{ e.hora_real_salida|date:"d/m H:i" }}{% endif %}
+        {% if e.acompanantes.all %}<br>Acompañantes: {% for a in e.acompanantes.all %}{{ a }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</div>{% endfor %}</div>{% endif %}
+    </div>
+    {% if mensajes %}<div class="card mb-3"><div class="card-header fw-semibold">Mensajes al huésped</div><ul class="list-group list-group-flush small">
+      {% for m in mensajes %}<li class="list-group-item">{{ m.creado_en|date:"d/m H:i" }} · {{ m.get_canal_display }} · {{ m.titulo }} {% badge m.estado_envio m.get_estado_envio_display %}{% if m.error %}<div class="text-muted">{{ m.error }}</div>{% endif %}</li>{% endfor %}</ul></div>{% endif %}
+    <details class="small"><summary>Historial de cambios</summary><ul>{% for a in historial %}<li>{{ a.fecha|date:"d/m H:i" }} {{ a.usuario|default:"sistema" }}: {{ a.get_accion_display }} {{ a.descripcion }}{% if a.despues %} <code>{{ a.despues }}</code>{% endif %}</li>{% endfor %}</ul></details>
+  </div>
+
+  <div class="col-lg-7" id="cuenta">
+    <div class="card mb-3"><div class="card-header d-flex justify-content-between"><span class="fw-semibold">Cuenta del huésped</span>
+      <span>Saldo: <b class="{% if saldo > 0 %}text-danger{% else %}text-success{% endif %}">{{ saldo|pesos }}</b>{% if r.estado in "pendiente,confirmada" %} <span class="small text-muted">(estimado {{ saldo_estimado|pesos }})</span>{% endif %}</span></div>
+      <div class="tabla-resp"><table class="table table-sm mb-0 small">
+        <thead><tr><th>Fecha</th><th>Concepto</th><th class="text-end">Importe</th><th></th></tr></thead><tbody>
+        {% for c in cargos %}<tr><td>{{ c.fecha|date:"d/m" }}</td><td>{{ c.concepto }}{% if c.cantidad != 1 %} × {{ c.cantidad|floatformat:"-2" }}{% endif %}</td><td class="text-end">{{ c.importe|pesos }}</td><td>{% if c.factura %}<a href="{% url 'factura_detalle' c.factura_id %}" title="Facturado"><i class="bi bi-receipt"></i></a>{% endif %}</td></tr>{% endfor %}
+        {% for p in pagos %}<tr class="table-success"><td>{{ p.fecha|date:"d/m" }}</td><td>{{ p.get_tipo_display }} · {{ p.get_medio_display }}{% if p.moneda == "USD" %} (USD {{ p.importe }} × {{ p.tipo_cambio|floatformat:2 }}){% endif %}{% if p.referencia %} · {{ p.referencia }}{% endif %}</td><td class="text-end">{% if p.tipo == "devolucion" %}{{ p.importe_ars|pesos }}{% else %}-{{ p.importe_ars|pesos }}{% endif %}</td><td></td></tr>{% endfor %}
+        {% if not cargos and not pagos %}<tr><td colspan="4" class="text-muted">Los cargos por noche se generan al hacer check-in.</td></tr>{% endif %}
+        </tbody>
+        <tfoot><tr><th colspan="2">Cargos</th><th class="text-end">{{ total_cargos|pesos }}</th><th></th></tr><tr><th colspan="2">Pagos</th><th class="text-end">{{ total_pagos|pesos }}</th><th></th></tr></tfoot>
+      </table></div>
+    </div>
+
+    {% if r.estado in "pendiente,confirmada,en_curso,finalizada" %}
+    <div class="accordion mb-3" id="acciones">
+      {% if perms.caja.add_pago %}
+      <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed py-2" data-bs-toggle="collapse" data-bs-target="#a-pago"><i class="bi bi-cash me-1"></i> Registrar pago / seña / devolución</button></h2>
+        <div id="a-pago" class="accordion-collapse collapse" data-bs-parent="#acciones"><div class="accordion-body">
+          {% if not caja_abierta %}<div class="alert alert-warning py-1 small">No tiene caja abierta: solo podrá registrar cobros que no sean en efectivo. <a href="{% url 'caja_mia' %}">Abrir caja</a></div>{% endif %}
+          <form method="post" action="{% url 'reserva_pago' r.pk %}" class="row g-2">{% csrf_token %}
+            {% for campo in pago_form %}<div class="col-6 col-md-4"><label class="form-label small mb-0">{{ campo.label }}</label>{{ campo }}</div>{% endfor %}
+            <div class="col-12"><button class="btn btn-success btn-sm">Registrar</button></div></form>
+        </div></div></div>
+      {% endif %}
+      {% if perms.caja.add_cargo and r.estado in "confirmada,en_curso" %}
+      <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed py-2" data-bs-toggle="collapse" data-bs-target="#a-cargo"><i class="bi bi-cup-hot me-1"></i> Cargar consumo o extra</button></h2>
+        <div id="a-cargo" class="accordion-collapse collapse" data-bs-parent="#acciones"><div class="accordion-body">
+          <form method="post" action="{% url 'reserva_cargo' r.pk %}" class="row g-2">{% csrf_token %}
+            {% for campo in cargo_form %}<div class="col-6 col-md-4"><label class="form-label small mb-0">{{ campo.label }}</label>{{ campo }}</div>{% endfor %}
+            <div class="col-12"><button class="btn btn-primary btn-sm">Agregar a la cuenta</button></div></form>
+        </div></div></div>
+      {% endif %}
+      {% if perms.facturacion.emitir_factura and pendientes_facturar %}
+      <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed py-2" data-bs-toggle="collapse" data-bs-target="#a-fact"><i class="bi bi-receipt me-1"></i> Facturar cargos pendientes</button></h2>
+        <div id="a-fact" class="accordion-collapse collapse" data-bs-parent="#acciones"><div class="accordion-body">
+          <form method="post" action="{% url 'reserva_facturar' r.pk %}">{% csrf_token %}
+            {% if r.titular.es_extranjero %}<div class="form-check small"><input class="form-check-input" type="checkbox" name="extranjero_exento" id="ext"><label for="ext" class="form-check-label">Turista extranjero: alojamiento exento de IVA (verificar requisitos con el contador)</label></div>{% endif %}
+            <button class="btn btn-primary btn-sm mt-1">Emitir comprobante</button></form>
+        </div></div></div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if r.estado == "en_curso" and perms.reservas.checkout_reserva %}
+    <form method="post" action="{% url 'reserva_checkout' r.pk %}" class="card card-body border-warning mb-3" onsubmit="return confirm('¿Confirmar el check-out?')">{% csrf_token %}
+      <h2 class="h6"><i class="bi bi-box-arrow-right"></i> Check-out</h2>
+      {% if r.fecha_salida > hoy %}<p class="small text-warning mb-1">Salida anticipada: la reserva se acortará a hoy y se liberará la habitación.</p>{% endif %}
+      {% if saldo > 0 and not r.cuenta_corriente %}<div class="form-check small"><input class="form-check-input" type="checkbox" name="autorizar_saldo" id="aut" {% if not perms.reservas.autorizar_checkout_con_saldo %}disabled{% endif %}><label class="form-check-label" for="aut">Autorizar salida con saldo pendiente ({{ saldo|pesos }}){% if not perms.reservas.autorizar_checkout_con_saldo %} – requiere autorización de un administrador{% endif %}</label></div>{% endif %}
+      {% if perms.facturacion.emitir_factura %}<div class="form-check small"><input class="form-check-input" type="checkbox" name="facturar" id="fac" checked><label class="form-check-label" for="fac">Emitir factura electrónica al salir</label></div>{% endif %}
+      <button class="btn btn-warning mt-2 align-self-start">Registrar check-out</button>
+    </form>
+    {% endif %}
+
+    {% if facturas %}<div class="card"><div class="card-header fw-semibold">Comprobantes</div><ul class="list-group list-group-flush small">
+      {% for f in facturas %}<li class="list-group-item d-flex justify-content-between"><a href="{% url 'factura_detalle' f.pk %}">{{ f }}</a><span>{{ f.total|pesos }} {% badge f.estado f.get_estado_display %}</span></li>{% endfor %}</ul></div>{% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Panel de recepción{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h4 mb-0">Recepción · {{ hoy|date:"l j \d\e F" }}</h1>
+  <div class="d-flex gap-2">
+    {% if perms.reservas.add_reserva %}<a class="btn btn-primary btn-sm" href="{% url 'reserva_nueva' %}"><i class="bi bi-plus-lg"></i> Nueva reserva</a>
+    <a class="btn btn-success btn-sm" href="{% url 'walk_in' %}"><i class="bi bi-person-walking"></i> Walk-in</a>{% endif %}
+  </div>
+</div>
+<div class="row g-2 mb-3">
+  <div class="col-6 col-md-3"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Ocupación actual</div><div class="valor">{{ ocupacion }} %</div><div class="small text-muted">{{ ocupadas }} de {{ total_habitaciones }} hab.</div></div></div>
+  <div class="col-6 col-md-3"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Llegadas hoy</div><div class="valor">{{ llegadas|length }}</div><div class="small text-muted">Mañana: {{ llegadas_manana }}</div></div></div>
+  <div class="col-6 col-md-3"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Salidas hoy</div><div class="valor">{{ salidas|length }}</div></div></div>
+  <div class="col-6 col-md-3"><div class="card card-body tarjeta-kpi"><div class="etiqueta">Sucias / fuera de servicio</div><div class="valor">{{ conteo.sucia }} / {{ conteo.fuera_servicio }}</div></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card"><div class="card-header fw-semibold"><i class="bi bi-box-arrow-in-right"></i> Llegadas</div>
+    <ul class="list-group list-group-flush">
+    {% for r in llegadas %}
+      <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+        <div><a href="{% url 'reserva_detalle' r.pk %}" class="fw-semibold">{{ r.titular }}</a> {% badge r.estado r.get_estado_display %}
+          <div class="small text-muted">{{ r.codigo }} · {{ r.noches }} noche/s · Hab. {% for d in r.detalles.all %}{% if d.vigente and d.activo %}{{ d.habitacion }} {% endif %}{% endfor %}</div></div>
+        {% if r.estado == "confirmada" and perms.reservas.checkin_reserva %}<a class="btn btn-sm btn-success" href="{% url 'reserva_checkin' r.pk %}">Check-in</a>
+        {% elif r.estado == "pendiente" %}<a class="btn btn-sm btn-outline-primary" href="{% url 'reserva_detalle' r.pk %}">Confirmar</a>{% endif %}
+      </li>
+    {% empty %}<li class="list-group-item text-muted">Sin llegadas pendientes.</li>{% endfor %}
+    </ul></div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card"><div class="card-header fw-semibold"><i class="bi bi-box-arrow-right"></i> Salidas</div>
+    <ul class="list-group list-group-flush">
+    {% for r in salidas %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div><a href="{% url 'reserva_detalle' r.pk %}" class="fw-semibold">{{ r.titular }}</a>
+          <div class="small text-muted">{{ r.codigo }} · Hab. {% for d in r.detalles.all %}{% if d.vigente and d.activo %}{{ d.habitacion }} {% endif %}{% endfor %}</div></div>
+        {% if perms.reservas.checkout_reserva %}<a class="btn btn-sm btn-warning" href="{% url 'reserva_detalle' r.pk %}#cuenta">Check-out</a>{% endif %}
+      </li>
+    {% empty %}<li class="list-group-item text-muted">Sin salidas pendientes.</li>{% endfor %}
+    </ul></div>
+  </div>
+  <div class="col-12">
+    <div class="card"><div class="card-header fw-semibold"><i class="bi bi-house-door"></i> En el hotel ({{ en_casa|length }})</div>
+    <div class="tabla-resp"><table class="table table-sm mb-0">
+    <thead><tr><th>Huésped</th><th>Código</th><th>Entrada</th><th>Salida</th></tr></thead><tbody>
+    {% for r in en_casa %}<tr><td><a href="{% url 'reserva_detalle' r.pk %}">{{ r.titular }}</a></td><td>{{ r.codigo }}</td><td>{{ r.fecha_entrada|date:"d/m" }}</td><td>{{ r.fecha_salida|date:"d/m" }}</td></tr>
+    {% empty %}<tr><td colspan="4" class="text-muted">Nadie alojado.</td></tr>{% endfor %}</tbody></table></div></div>
+  </div>
+</div>
+{% endblock %}

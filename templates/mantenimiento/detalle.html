@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% load impulso %}
+{% block titulo %}Incidencia #{{ inc.pk }}{% endblock %}
+{% block contenido %}
+<h1 class="h4">#{{ inc.pk }} {{ inc.titulo }} {% badge inc.estado inc.get_estado_display %}{% if inc.bloqueante %} <span class="badge text-bg-dark">Bloqueante</span>{% endif %}</h1>
+<div class="row g-3">
+<div class="col-lg-6"><div class="card card-body small">
+  <dl class="row mb-0"><dt class="col-4">Ubicación</dt><dd class="col-8">{% if inc.habitacion %}Hab. {{ inc.habitacion }}{% endif %} {% if inc.activo_relacionado %}{{ inc.activo_relacionado }}{% endif %}</dd>
+  <dt class="col-4">Origen</dt><dd class="col-8">{{ inc.get_origen_display }} · {{ inc.creado_por|default:"" }}</dd>
+  <dt class="col-4">Categoría</dt><dd class="col-8">{{ inc.get_categoria_display }}</dd>
+  <dt class="col-4">Prioridad</dt><dd class="col-8">{{ inc.get_prioridad_display }}</dd>
+  <dt class="col-4">Reportada</dt><dd class="col-8">{{ inc.reportada_en|date:"d/m/Y H:i" }}</dd>
+  <dt class="col-4">Técnico</dt><dd class="col-8">{{ inc.asignada_a|default:"—" }}</dd>
+  {% if inc.resuelta_en %}<dt class="col-4">Resolución</dt><dd class="col-8">{{ inc.horas_resolucion }} h</dd>{% endif %}
+  <dt class="col-4">Costo</dt><dd class="col-8">{{ inc.costo_total|pesos }}</dd></dl>
+  {% if inc.descripcion %}<p class="mt-2 mb-0">{{ inc.descripcion|linebreaksbr }}</p>{% endif %}
+  {% if inc.solucion %}<p class="mt-2 mb-0"><b>Solución:</b> {{ inc.solucion }}</p>{% endif %}
+  <div class="d-flex flex-wrap gap-2 mt-2">{% for f in fotos %}<a href="{{ f.imagen.url }}" target="_blank"><img src="{{ f.imagen.url }}" alt="foto" style="height:90px;border-radius:4px"></a>{% endfor %}</div>
+</div>
+{% if trabajos %}<div class="card mt-2"><div class="card-header small fw-semibold">Trabajos</div><ul class="list-group list-group-flush small">{% for t in trabajos %}<li class="list-group-item">{{ t.fecha_realizado|date:"d/m/Y" }} · {{ t.tecnico }} · {{ t.horas }} h · {{ t.costo_total|pesos }}<div>{{ t.descripcion }}</div>{% for r in t.repuestos.all %}<div class="text-muted">{{ r }}</div>{% endfor %}</li>{% endfor %}</ul></div>{% endif %}
+</div>
+{% if perms.mantenimiento.change_incidencia and inc.estado != "cerrada" %}
+<div class="col-lg-6">
+  <form method="post" action="{% url 'incidencia_accion' inc.pk %}" class="card card-body mb-2">{% csrf_token %}<h2 class="h6">Asignar técnico</h2>
+    <div class="d-flex gap-1"><select name="tecnico" class="form-select form-select-sm">{% for t in tecnicos %}<option value="{{ t.pk }}" {% if t.pk == inc.asignada_a_id %}selected{% endif %}>{{ t }}</option>{% endfor %}</select><button name="accion" value="asignar" class="btn btn-sm btn-outline-primary">Asignar</button></div></form>
+  <form method="post" action="{% url 'incidencia_accion' inc.pk %}" class="card card-body mb-2">{% csrf_token %}<h2 class="h6">Cambiar estado</h2>
+    <input name="solucion" class="form-control form-control-sm mb-1" placeholder="Solución (al resolver)">
+    <div class="d-flex flex-wrap gap-1">{% for s in siguientes %}<button name="estado" value="{{ s }}" class="btn btn-sm btn-outline-{{ s|color }}" onclick="this.form.accion.value='estado'">{{ estados|get:s }}</button>{% endfor %}</div><input type="hidden" name="accion" value="estado"></form>
+  <form method="post" action="{% url 'incidencia_accion' inc.pk %}" class="card card-body">{% csrf_token %}<h2 class="h6">Registrar trabajo</h2>{% include "mantenimiento/_trabajo_form.html" %}<button name="accion" value="trabajo" class="btn btn-sm btn-success mt-2">Registrar</button></form>
+</div>{% endif %}
+</div>
+{% endblock %}

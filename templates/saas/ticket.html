@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block contenido %}
+<h1 class="h5">#{{ t.pk }} {{ t.asunto }} <span class="badge text-bg-secondary">{{ t.get_estado_display }}</span></h1>
+<p class="small text-muted">{{ t.empresa }} · {{ t.usuario }} · {{ t.creado_en|date:"d/m/Y H:i" }}</p>
+<div class="card card-body mb-2">{{ t.descripcion|linebreaks }}</div>
+{% for m in t.mensajes.all %}<div class="card card-body mb-2 {% if m.es_soporte %}border-primary ms-md-5{% else %}me-md-5{% endif %} small"><b>{{ m.autor }}{% if m.es_soporte %} (Impulso){% endif %}</b> <span class="text-muted">{{ m.creado_en|date:"d/m H:i" }}</span>{{ m.texto|linebreaks }}</div>{% endfor %}
+<form method="post" class="card card-body">{% csrf_token %}<textarea name="texto" class="form-control mb-2" rows="3" placeholder="Responder…"></textarea>
+<div class="d-flex gap-2">{% if es_soporte %}<select name="estado" class="form-select form-select-sm" style="max-width:260px"><option value="">(mantener estado)</option>{% for v, n in estados %}<option value="{{ v }}">{{ n }}</option>{% endfor %}</select>{% else %}<label class="small"><input type="checkbox" name="estado" value="cerrado"> Cerrar consulta</label>{% endif %}<button class="btn btn-primary btn-sm">Enviar</button></div></form>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% load impulso static %}
+{% block titulo %}Predicción de demanda{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><h1 class="h4 mb-0">Predicción de demanda</h1>
+{% if perms.bi.aprobar_tarifa %}<form method="post">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="bi bi-arrow-repeat"></i> Recalcular ahora</button></form>{% endif %}</div>
+{% if modelo %}
+<div class="alert alert-light border small">
+  <b>Modelo activo:</b> {{ modelo.modelo }} · calculado {{ modelo.calculada_en|date:"d/m/Y H:i" }}<br>
+  {% if modelo.mape_linea_base is not None %}Error (MAPE) de la línea base: <b>{{ modelo.mape_linea_base }} %</b>{% endif %}
+  {% if modelo.mape_modelo is not None %} · Error del modelo ML: <b>{{ modelo.mape_modelo }} %</b> {% if modelo.mape_modelo < modelo.mape_linea_base %}(mejora a la línea base: activo){% else %}(no mejora: se usa la línea base){% endif %}{% endif %}
+  {% if modelo.datos_base.motivo %}<br>{{ modelo.datos_base.motivo }}{% endif %}
+  {% if modelo.datos_base.dias_historia %}<br>Días de historia usados: {{ modelo.datos_base.dias_historia }}.{% endif %}
+  <br><span class="text-muted">Variables: día de la semana, temporada, feriados argentinos y reservas ya en cartera. El modelo de ML solo se activa con ≥ 12 meses de historia y si su error es menor al de la línea base.</span>
+</div>
+<div class="card card-body mb-3"><div style="height:300px"><canvas id="g-pred" aria-label="Ocupación real y proyectada"></canvas></div></div>
+<div class="tabla-resp"><table class="table table-sm bg-white small"><thead><tr><th>Fecha</th><th class="text-end">Proyectada</th><th class="text-end">En cartera</th><th>Feriado</th></tr></thead><tbody>
+{% for p in preds|slice:":31" %}<tr class="{% if p.valor < 40 %}table-warning{% endif %}"><td>{{ p.fecha_objetivo|date:"D d/m" }}</td><td class="text-end">{{ p.valor|floatformat:1 }} %</td><td class="text-end">{{ p.datos_base.en_cartera|floatformat:1 }} %</td><td>{% if p.datos_base.feriado %}Sí{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<div class="alert alert-info">Todavía no hay predicciones. Se calculan en el proceso nocturno o con «Recalcular ahora».</div>{% endif %}
+{% endblock %}
+{% block scripts %}{{ graficos|json_script:"datos-graficos" }}<script src="{% static 'js/graficos.js' %}"></script><script>
+const G = JSON.parse(document.getElementById("datos-graficos").textContent);
+lineas("g-pred", G.labels, [{label: "Real", data: G.real, color: 0}, {label: "Proyectada", data: G.pred, color: 1, dash: [5, 3]}, {label: "En cartera", data: G.cartera, color: 2}], v => Number(v).toFixed(0) + " %", 100);
+</script>{% endblock %}

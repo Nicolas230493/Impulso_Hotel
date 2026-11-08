@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: impulso
+      POSTGRES_USER: impulso
+      POSTGRES_PASSWORD: impulso
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "impulso"]
+      interval: 5s
+  redis:
+    image: redis:7-alpine
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && gunicorn impulso.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    env_file: .env
+    environment: &entorno
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+    ports: ["8000:8000"]
+    volumes: [media:/app/media]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_started}
+  worker:
+    build: .
+    command: celery -A impulso worker -l info
+    env_file: .env
+    environment: *entorno
+    volumes: [media:/app/media]
+    depends_on: [db, redis]
+  beat:
+    build: .
+    command: celery -A impulso beat -l info
+    env_file: .env
+    environment: *entorno
+    depends_on: [db, redis]
+volumes:
+  pgdata:
+  media:

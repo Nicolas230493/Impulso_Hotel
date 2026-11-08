@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block contenido %}<div class="alert alert-danger"><h1 class="h5">Cuenta en modo solo lectura</h1>La suscripción está {{ suscripcion.get_estado_display|lower }}. Puede consultar toda su información, pero no registrar cambios. <a href="{% url 'saas_mi_suscripcion' %}">Regularizar el pago</a>.</div>{% endblock %}

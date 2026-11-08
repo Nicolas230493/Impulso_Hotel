@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Rack{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+  <h1 class="h4 mb-0">Calendario de disponibilidad</h1>
+  <form class="d-flex gap-1" method="get">
+    <a class="btn btn-sm btn-outline-secondary" href="?desde={{ anterior|date:'Y-m-d' }}&dias={{ dias }}">‹</a>
+    <input type="date" class="form-control form-control-sm" name="desde" value="{{ desde|date:'Y-m-d' }}" onchange="this.form.submit()">
+    <select name="dias" class="form-select form-select-sm" onchange="this.form.submit()">
+      <option value="7" {% if dias == 7 %}selected{% endif %}>7 días</option><option value="14" {% if dias == 14 %}selected{% endif %}>14 días</option>
+      <option value="31" {% if dias == 31 %}selected{% endif %}>31 días</option></select>
+    <a class="btn btn-sm btn-outline-secondary" href="?desde={{ siguiente|date:'Y-m-d' }}&dias={{ dias }}">›</a>
+  </form>
+</div>
+<p class="small text-muted mb-1">Toque una celda libre para crear una reserva desde esa fecha.
+  <span class="badge estado-pendiente">Pendiente</span> <span class="badge estado-confirmada">Confirmada</span> <span class="badge estado-en_curso">En curso</span> <span class="badge estado-finalizada">Finalizada</span></p>
+<div class="tabla-resp"><table class="table table-bordered rack bg-white" style="table-layout:fixed">
+  <thead><tr><th style="width:90px">Hab.</th>{% for f in fechas %}<th class="text-center {% if f.weekday >= 5 %}finde{% endif %} {% if f == hoy %}hoy{% endif %}">{{ f|date:"D" }}<br>{{ f|date:"d/m" }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for fila in filas %}<tr>
+    <th title="{{ fila.habitacion.tipo }}">{{ fila.habitacion.numero }} <span class="fw-normal text-muted d-none d-md-inline">{{ fila.habitacion.tipo.nombre|truncatechars:8 }}</span></th>
+    {% for c in fila.celdas %}
+      {% if c.tipo == "ocup" %}<td colspan="{{ c.span }}" class="ocup estado-{{ c.detalle.reserva.estado }}"><a class="text-white text-decoration-none" href="{% url 'reserva_detalle' c.detalle.reserva_id %}" title="{{ c.detalle.reserva.titular }} · {{ c.detalle.fecha_entrada|date:'d/m' }}→{{ c.detalle.fecha_salida|date:'d/m' }}">{{ c.detalle.reserva.titular.apellido }}</a></td>
+      {% elif c.tipo == "bloq" %}<td class="bloq {% if c.fecha == hoy %}hoy{% endif %}" title="Fuera de servicio"></td>
+      {% else %}<td class="libre {% if c.fecha == hoy %}hoy{% endif %}">{% if c.fecha >= hoy and perms.reservas.add_reserva %}<a href="{% url 'reserva_nueva' %}?habitacion={{ fila.habitacion.pk }}&entrada={{ c.fecha|date:'Y-m-d' }}" class="text-center">+</a>{% endif %}</td>{% endif %}
+    {% endfor %}
+  </tr>{% endfor %}
+  </tbody></table></div>
+{% endblock %}

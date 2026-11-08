@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}Alertas{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between mb-2"><h1 class="h4">Alertas inteligentes</h1><div class="btn-group btn-group-sm"><a class="btn btn-outline-secondary {% if ver == 'abiertas' %}active{% endif %}" href="?ver=abiertas">Abiertas</a><a class="btn btn-outline-secondary {% if ver == 'todas' %}active{% endif %}" href="?ver=todas">Todas</a></div></div>
+{% for a in alertas %}<div class="card mb-2 border-{{ a.nivel }}"><div class="card-body py-2">
+<div class="d-flex justify-content-between gap-2"><div><span class="badge text-bg-{{ a.nivel }}">{{ a.get_tipo_display }}</span> <b>{{ a.titulo }}</b> <small class="text-muted">{{ a.creado_en|date:"d/m/Y H:i" }}</small><div class="small">{{ a.mensaje }}</div>
+<details class="small text-muted"><summary>Datos en que se basa</summary><code>{{ a.datos_base }}</code></details></div>
+{% if not a.resuelta %}<form method="post" action="{% url 'bi_alerta_resolver' a.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success text-nowrap">Marcar resuelta</button></form>{% else %}<span class="small text-muted">Resuelta por {{ a.resuelta_por }}</span>{% endif %}</div></div></div>
+{% empty %}<p class="text-muted">No hay alertas.</p>{% endfor %}
+{% endblock %}
